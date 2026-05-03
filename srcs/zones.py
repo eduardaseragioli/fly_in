@@ -1,5 +1,6 @@
 from enum import Enum
 from base import Base
+from drone import Drone
 
 class Type_zone(str, Enum):
     normal = "normal"
