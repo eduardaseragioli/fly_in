@@ -1,4 +1,4 @@
-from zones import Zone
+from zones import Zone 
 from enum import Enum
 from typing import Optional
 
@@ -34,4 +34,16 @@ class Drone:
                 self.planned_route.pop(0)
             return True
 
-    def start_transit_restricted(self, )
+    def start_transit_restricted(self, destination_zone: Zone, turno_current: int, connection: Connection) -> bool:
+        from connections import Connection
+        capacity = connection.has_capacity()
+        if capacity is False: 
+            return False
+        else:
+            self.current_zone.remove_drone(self)
+            connection.add_drone(self)
+            self.destination_zone = destination_zone
+            self.turn_destination = turno_current + 2
+            self.status = Status.transit_to_restricted
+            return True
+        

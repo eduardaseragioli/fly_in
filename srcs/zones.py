@@ -38,4 +38,10 @@ class Zone(Base):
         else:
             self.drone_actual.remove(drone_actual)
             return True
+        
+    def is_blocked(self) -> bool:
+        if self.type_zone == Type_zone.blocked:
+            return True 
+        else:
+            return False
 
