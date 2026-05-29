@@ -8,6 +8,25 @@ class Parser:
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
 
+    def _parse_metadata(self, line: str) -> list:
+        if '[' in line:
+            type_zone = Type_zone.normal
+            color = "None"
+            max_drones = 1
+            metadata = line[line.index('[') + 1 : line.index(']')]
+            for pair in metadata.split():
+                key, value = pair.split('=')
+                if key == "zone":
+                    type_zone = Type_zone(value)
+                elif key == "color":
+                    color = value
+                elif key == "max_drones":
+                    max_drones = int(value)
+
+        return [type_zone, color, max_drones]
+
+
+
     def parse(self) -> Graph:
         start_zone: Optional[Zone] = None
         end_zone: Optional[Zone] = None
@@ -15,6 +34,7 @@ class Parser:
         connection: list[Connection] = []
         with open(self.file_path, 'r') as file:
             line = file.readline()
+
             if line.startswith('nb_drones: '): 
                 nb_drones_split= line.split(":")
                 value_drone = nb_drones_split[1].strip()
@@ -22,6 +42,7 @@ class Parser:
                     value_drone = int(value_drone)
                 except ValueError:
                     raise ValueError("The {value_drone} is not a int")
+
             for line in file:
                 if line.startswith('#'):
                     pass
@@ -30,42 +51,42 @@ class Parser:
                     name = parts_start_hub[1]
                     x = int(parts_start_hub[2])
                     y = int(parts_start_hub[3])
-                    start_zone = Zone(name, (x, y))
+                    coordinates = x, y
+
+                    type_zone, color, max_drones = self._parse_metadata(line)
+                    start_zone = Zone(name, coordinates, type_zone, color, max_drones)
+
+
+
                 elif line.startswith('end_hub'):
                     parts_end_hub = line.split()
                     name = parts_end_hub[1]
                     x = int(parts_end_hub[2])
                     y = int(parts_end_hub[3])
-                    end_zone = Zone(name, (x, y))
+                    coordinates = x, y
+
+                    type_zone, color, max_drones = self._parse_metadata(line)
+
+
+                    end_zone = Zone(name, coordinates, type_zone, color, max_drones)
+
                 elif line.startswith('hub'):
                     parts_hub = line.split()
                     name = parts_hub[1]
                     x = int(parts_hub[2])
                     y = int(parts_hub[3])
-                    
-                    if '[' in line:
-                        type_zone = Type_zone.normal
-                        color = "None"
-                        max_drones = 1
-                        metadata = line[line.index('[') + 1 : line.index(']')]
-                        for pair in metadata.split():
-                            key, value = pair.split('=')
-                            if key == "zone":
-                                type_zone = Type_zone(value)
-                            elif key == "color":
-                                color = value
-                            elif key == "max_drones":
-                                max_drones = int(value)
-                    else:
-                        type_zone = Type_zone.normal
-                        color = "None"
-                        max_drones = 1
 
-                    coordinates = [x, y] 
-                    create_zone = Zone(name, coordinates, type_zone, color, max_drones)
-                    zones.append(create_zone)
+                    type_zone, color, max_drones = self._parse_metadata(line)
+
+
                 elif line.startswith('connection'):
-                    connection = 
+                    for connection in Connection:
+                        parts = line.split()
+                        parts[0] = "connection:"
+                        parts[1] = "corridorA-tunnelB"
+                        zone_names = parts[1].split('-')
+                        zone_names[0] = "corridorA"
+                        zone_names[1] = "tunnelB"
 
         return Graph(start_zone, end_zone)
 
