@@ -8,7 +8,7 @@ class Pathfinder:
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
 
-    def find_path(self, start_hub: Optional[Zone], end_hub: Optional[Zone]) -> :
+    def find_path(self, start_hub: Optional[Zone], end_hub: Optional[Zone]) -> list[list[Zone]]:
         accumulated_distances: int
         visited_path: 
         
