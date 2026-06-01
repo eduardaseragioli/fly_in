@@ -22,6 +22,10 @@ class Parser:
                     color = value
                 elif key == "max_drones":
                     max_drones = int(value)
+        else:
+            type_zone = Type_zone.normal
+            color = "None"
+            max_drones = 1
 
         return [type_zone, color, max_drones]
 
@@ -41,11 +45,12 @@ class Parser:
                 try:
                     value_drone = int(value_drone)
                 except ValueError:
-                    raise ValueError("The {value_drone} is not a int")
+                    raise ValueError(f"The {value_drone} is not a int")
 
             for line in file:
                 if line.startswith('#'):
                     pass
+
                 elif line.startswith('start_hub'):
                     parts_start_hub = line.split()
                     name = parts_start_hub[1]
@@ -55,6 +60,7 @@ class Parser:
 
                     type_zone, color, max_drones = self._parse_metadata(line)
                     start_zone = Zone(name, coordinates, type_zone, color, max_drones)
+                    zones.append(start_zone)
 
 
 
@@ -66,29 +72,48 @@ class Parser:
                     coordinates = x, y
 
                     type_zone, color, max_drones = self._parse_metadata(line)
-
-
                     end_zone = Zone(name, coordinates, type_zone, color, max_drones)
+                    zones.append(end_zone)
+
 
                 elif line.startswith('hub'):
                     parts_hub = line.split()
                     name = parts_hub[1]
                     x = int(parts_hub[2])
                     y = int(parts_hub[3])
+                    coordinates = x, y
 
                     type_zone, color, max_drones = self._parse_metadata(line)
+                    hub_zone = Zone(name, coordinates, type_zone, color, max_drones)
+                    zones.append(hub_zone)
 
 
                 elif line.startswith('connection'):
-                    for connection in Connection:
-                        parts = line.split()
-                        parts[0] = "connection:"
-                        parts[1] = "corridorA-tunnelB"
-                        zone_names = parts[1].split('-')
-                        zone_names[0] = "corridorA"
-                        zone_names[1] = "tunnelB"
+                    parts = line.split()
+                    zone_names = parts[1].split('-')
+                    zona_a = zone_names[0]
+                    zona_b = zone_names[1]
+                    zone_a = next((z for z in zones if z.name == zona_a), None)
+                    zone_b = next((z for z in zones if z.name == zona_b), None)
+                    if zone_a is None or zone_b is None:
+                        raise ValueError("The zone not in Zones")
+                    name = "-".join([zona_a, zona_b])
+                    creat_connection = Connection(name, zone_a, zone_b)
+                    connection.append(creat_connection)
 
-        return Graph(start_zone, end_zone)
+        if start_zone == None:
+            raise ValueError("The start zone can not be null")
+        if end_zone == None:
+            raise ValueError("The end zone can not be null")
+
+        graph = Graph(start_zone, end_zone)
+
+        for z in zones:
+            graph.add_zone(z)
+        for c in connection:
+            graph.add_connection(c)
+
+        return graph
 
    
 
