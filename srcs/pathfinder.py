@@ -1,6 +1,7 @@
 from parser import Parser
 from graph import Graph
 from zones import Zone
+from typing import Optional
 
 
 class Pathfinder:
@@ -8,3 +9,7 @@ class Pathfinder:
         self.graph = graph
 
     def find_path(self, start_hub: Optional[Zone], end_hub: Optional[Zone]) -> :
+        accumulated_distances: int
+        visited_path: 
+        
+        
