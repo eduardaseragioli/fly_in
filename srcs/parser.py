@@ -2,7 +2,7 @@ from zones import Zone, Type_zone
 from connections import Connection
 from graph import Graph
 from pathlib import Path
-from typing import Optional
+
 
 class Parser:
     def __init__(self, file_path: Path) -> None:
@@ -43,7 +43,7 @@ class Parser:
                 nb_drones_split= line.split(":")
                 value_drone = nb_drones_split[1].strip()
                 try:
-                    value_drone = int(value_drone)
+                    self.nb_drones = int(value_drone)
                 except ValueError:
                     raise ValueError(f"The {value_drone} is not a int")
 
