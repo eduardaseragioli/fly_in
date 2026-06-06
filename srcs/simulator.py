@@ -39,10 +39,7 @@ class Simulator:
     def print_output(self) -> None:
         for line in self.history:
             print(line)
-        print(self.create_drone(self))
+        print(f"Total turns: {self.current_turn}")
 
     def get_turns(self) -> int:
         return self.current_turn
-            
-        
-        
