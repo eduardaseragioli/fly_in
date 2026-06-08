@@ -1,3 +1,4 @@
+from __future__ import annotations
 from zones import Zone, Type_zone
 from connections import Connection
 from graph import Graph
@@ -37,15 +38,19 @@ class Parser:
         zones: list[Zone] = []
         connection: list[Connection] = []
         with open(self.file_path, 'r') as file:
-            line = file.readline()
+            for line in file:
+                line = line.strip()
+                if line.startswith('#') or not line:
+                    continue
 
-            if line.startswith('nb_drones: '): 
-                nb_drones_split= line.split(":")
-                value_drone = nb_drones_split[1].strip()
-                try:
-                    self.nb_drones = int(value_drone)
-                except ValueError:
-                    raise ValueError(f"The {value_drone} is not a int")
+                if line.startswith('nb_drones: '): 
+                    nb_drones_split= line.split(":")
+                    value_drone = nb_drones_split[1].strip()
+                    try:
+                        self.nb_drones = int(value_drone)
+                    except ValueError:
+                        raise ValueError(f"The {value_drone} is not a int")
+                    break
 
             for line in file:
                 if line.startswith('#'):

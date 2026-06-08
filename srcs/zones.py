@@ -1,6 +1,7 @@
+from __future__ import annotations
 from enum import Enum
 from base import Base
-from drone import Drone
+
 
 class Type_zone(str, Enum):
     normal = "normal"
@@ -17,12 +18,12 @@ class Zone(Base):
         self.type_zone = type_zone
         self.max_drones = max_drones
         self.drone_actual: list = []
+        self.is_end_zone: bool = False
 
     def has_capacity(self) -> bool:
-        if len(self.drone_actual) >= self.max_drones:
-            return False
-        else:
+        if self.is_end_zone:
             return True
+        return len(self.drone_actual) < self.max_drones
 
     def add_drone(self, drone_actual: Drone) -> bool:
         

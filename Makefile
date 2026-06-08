@@ -1,13 +1,30 @@
 PYTHON = python3
 PIP = pip
-MAIN = fly_in.py
+MAIN = srcs/main.py
+FILE = maps/challenger/01_the_impossible_dream.txt
+REQS = requirements.txt
 
-all: intall 
 
-intall:
-	$(PIP) install -r $()
+all: install 
+
+install:
+	$(PIP) install -r $(REQS)
 
 run:
-	$(PYTHON) $(MAIN)
+	$(PYTHON) $(MAIN) $(FILE)
 
 debug:
+	$(PYTHON) -m pdb $(MAIN) $(FILE)
+
+lint:
+	flake8 .
+	mypy . --warn-return-any \
+	--warn-unused-ignores \
+	--ignore-missing-imports \
+	--disallow-untyped-defs \
+	--check-untyped-defs
+
+clean:
+	rm -rf __pycache__ .mypy_cache
+
+.PHONY: all install run debug lint clean

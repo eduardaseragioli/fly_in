@@ -1,3 +1,4 @@
+from __future__ import annotations
 from zones import Zone
 from base import Base
 

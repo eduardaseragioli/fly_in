@@ -1,3 +1,4 @@
+from __future__ import annotations
 from parser import Parser
 from graph import Graph
 from zones import Zone
@@ -15,13 +16,13 @@ class Pathfinder:
             start_hub: 0
         }
         visited_path: dict[Zone, Zone] = {}
-        unvisited_zone = [(0, start_hub)]
+        unvisited_zone = [(0, 0, start_hub)]
         neighbor: Zone
         counter = 0
 
         while unvisited_zone:
 
-            current_distance, current_zone = heapq.heappop(unvisited_zone)
+            current_distance, _, current_zone = heapq.heappop(unvisited_zone)
 
             if current_zone == end_hub:
                 destination = end_hub
@@ -30,7 +31,6 @@ class Pathfinder:
                 while current in visited_path:
                     reverse_path.append(current)
                     current = visited_path[current]
-                reverse_path.append(current)
                 path_found = reverse_path[::-1]
                 return path_found
 
@@ -41,6 +41,8 @@ class Pathfinder:
                 elif neighbor.type_zone == Type_zone.restricted:
                     cost = 2
                 elif neighbor.type_zone == Type_zone.priority:
+                    cost = 1
+                else:
                     cost = 1
 
                 new_distance = current_distance + cost
