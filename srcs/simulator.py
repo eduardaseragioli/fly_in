@@ -4,6 +4,7 @@ from pathfinder import Pathfinder
 from drone import Drone, Status
 from zones import Zone, Type_zone
 
+
 class Simulator:
     def __init__(self, graph: Graph, nb_drones: int, pathfinder: Pathfinder) -> None:
         self.graph = graph
@@ -31,9 +32,11 @@ class Simulator:
                         if drone.current_connection is not None:
                             drone.current_connection.remove_drone(drone)
                         if drone.transit_destination_zone is not None:
-                            drone.transit_destination_zone.drone_actual.append(drone)
+                            drone.transit_destination_zone.drone_actual.append(
+                                drone)
                             drone.current_zone = drone.transit_destination_zone
-                            turn_movements.append(f"{drone.id_drone}-{drone.transit_destination_zone.name}")
+                            turn_movements.append(
+                                f"{drone.id_drone}-{drone.transit_destination_zone.name}")
                         if drone.planned_route:
                             drone.planned_route.pop(0)
                         if drone.transit_destination_zone == drone.destination_zone:
@@ -45,14 +48,15 @@ class Simulator:
                         drone.current_connection = None
                         completed_transit_this_turn.add(drone.id_drone)
 
-
             for drone in self.drones:
                 if drone.status != Status.arrived and drone.status != Status.transit_to_restricted:
                     if not drone.planned_route:
-                        drone.planned_route = self.pathfinder.find_path(drone.current_zone, drone.destination_zone)
+                        drone.planned_route = self.pathfinder.find_path(
+                            drone.current_zone, drone.destination_zone)
                     if drone.planned_route:
                         next_zone = drone.planned_route[0]
-                        connection = self.graph.get_connection(drone.current_zone, next_zone)
+                        connection = self.graph.get_connection(
+                            drone.current_zone, next_zone)
                         if connection and not connection.has_capacity():
                             continue
                         if drone.id_drone in moved_this_turn:
@@ -61,15 +65,17 @@ class Simulator:
                             continue
                         if next_zone.type_zone == Type_zone.restricted:
                             if drone.start_transit_restricted(next_zone, self.current_turn, connection):
-                                turn_movements.append(f"{drone.id_drone}-{connection.name}")
+                                turn_movements.append(
+                                    f"{drone.id_drone}-{connection.name}")
                         else:
                             if drone.move_drone(next_zone):
-                                turn_movements.append(f"{drone.id_drone}-{next_zone.name}")
+                                turn_movements.append(
+                                    f"{drone.id_drone}-{next_zone.name}")
             if turn_movements:
-                self.history.append(" ".join(turn_movements))                         
+                self.history.append(" ".join(turn_movements))
 
             self.current_turn += 1
-    
+
     def print_output(self) -> None:
         for line in self.history:
             print(line)

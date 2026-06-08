@@ -14,7 +14,7 @@ class Parser:
             type_zone = Type_zone.normal
             color = "None"
             max_drones = 1
-            metadata = line[line.index('[') + 1 : line.index(']')]
+            metadata = line[line.index('[') + 1: line.index(']')]
             for pair in metadata.split():
                 key, value = pair.split('=')
                 if key == "zone":
@@ -30,8 +30,6 @@ class Parser:
 
         return [type_zone, color, max_drones]
 
-
-
     def parse(self) -> Graph:
         start_zone: Optional[Zone] = None
         end_zone: Optional[Zone] = None
@@ -43,8 +41,8 @@ class Parser:
                 if line.startswith('#') or not line:
                     continue
 
-                if line.startswith('nb_drones: '): 
-                    nb_drones_split= line.split(":")
+                if line.startswith('nb_drones: '):
+                    nb_drones_split = line.split(":")
                     value_drone = nb_drones_split[1].strip()
                     try:
                         self.nb_drones = int(value_drone)
@@ -64,10 +62,9 @@ class Parser:
                     coordinates = x, y
 
                     type_zone, color, max_drones = self._parse_metadata(line)
-                    start_zone = Zone(name, coordinates, type_zone, color, max_drones)
+                    start_zone = Zone(name, coordinates,
+                                      type_zone, color, max_drones)
                     zones.append(start_zone)
-
-
 
                 elif line.startswith('end_hub'):
                     parts_end_hub = line.split()
@@ -77,9 +74,9 @@ class Parser:
                     coordinates = x, y
 
                     type_zone, color, max_drones = self._parse_metadata(line)
-                    end_zone = Zone(name, coordinates, type_zone, color, max_drones)
+                    end_zone = Zone(name, coordinates,
+                                    type_zone, color, max_drones)
                     zones.append(end_zone)
-
 
                 elif line.startswith('hub'):
                     parts_hub = line.split()
@@ -89,9 +86,9 @@ class Parser:
                     coordinates = x, y
 
                     type_zone, color, max_drones = self._parse_metadata(line)
-                    hub_zone = Zone(name, coordinates, type_zone, color, max_drones)
+                    hub_zone = Zone(name, coordinates,
+                                    type_zone, color, max_drones)
                     zones.append(hub_zone)
-
 
                 elif line.startswith('connection'):
                     parts = line.split()
@@ -119,6 +116,3 @@ class Parser:
             graph.add_connection(c)
 
         return graph
-
-   
-

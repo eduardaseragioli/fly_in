@@ -2,6 +2,7 @@ from __future__ import annotations
 from zones import Zone
 from base import Base
 
+
 class Connection(Base):
 
     def __init__(self, name: str, zone_a: Zone, zone_b: Zone, max_link_capacity: int = 1, is_blocked: bool = False) -> None:
@@ -17,18 +18,17 @@ class Connection(Base):
             return False
         else:
             return True
-        
+
     def add_drone(self, drone_actual: Drone) -> bool:
         if self.has_capacity() is False:
             return False
         else:
             self.drone_transit.append(drone_actual)
             return True
-        
+
     def remove_drone(self, drone_actual: Drone) -> bool:
         if drone_actual not in self.drone_transit:
             return False
         else:
             self.drone_transit.remove(drone_actual)
             return True
-

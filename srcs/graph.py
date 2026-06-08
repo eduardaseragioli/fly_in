@@ -10,7 +10,7 @@ class Graph:
         self.connection_dict: dict[str, Connection] = {}
         self.start_zone = start_zone
         self.end_zone = end_zone
- 
+
     def add_zone(self, zone_will_installed: Zone) -> bool:
         if zone_will_installed.name in self.zone_dict:
             return False
@@ -45,10 +45,9 @@ class Graph:
                 else:
                     zone_list.append(connection.zone_a)
         return zone_list
-    
+
     def get_connection(self, zone_a: Zone, zone_b: Zone) -> Optional[Connection]:
         for connection in self.connection_dict.values():
             if (connection.zone_a == zone_b and connection.zone_b == zone_a) or (connection.zone_a == zone_a and connection.zone_b == zone_b):
                 return connection
         return None
-        

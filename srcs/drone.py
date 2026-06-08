@@ -1,5 +1,5 @@
 from __future__ import annotations
-from zones import Zone 
+from zones import Zone
 from enum import Enum
 from typing import Optional
 
@@ -21,7 +21,7 @@ class Drone:
         self.turn_destination: Optional[int] = None
         self.current_connection = current_connection
         self.transit_destination_zone: Optional[Zone] = None
-        
+
     def move_drone(self, destination_zone: Zone) -> bool:
         capacity = destination_zone.has_capacity()
         if self.destination_zone == destination_zone:
@@ -43,7 +43,7 @@ class Drone:
     def start_transit_restricted(self, destination_zone: Zone, turno_current: int, connection: Connection) -> bool:
         from connections import Connection
         capacity = connection.has_capacity()
-        if capacity is False: 
+        if capacity is False:
             return False
         else:
             self.current_zone.remove_drone(self)
@@ -53,4 +53,3 @@ class Drone:
             self.status = Status.transit_to_restricted
             self.current_connection = connection
             return True
-        

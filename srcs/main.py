@@ -5,6 +5,7 @@ from parser import Parser
 from pathfinder import Pathfinder
 from simulator import Simulator
 
+
 def main() -> None:
     file_path = sys.argv[1]
     parser = Parser(file_path)
@@ -15,6 +16,7 @@ def main() -> None:
     simulator.create_drone()
     simulator.run_simulator()
     simulator.print_output()
+
 
 if __name__ == "__main__":
     main()
