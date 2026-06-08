@@ -32,11 +32,15 @@ class Graph:
             if zone_neighbors == connection.zone_a:
                 if connection.zone_b.is_blocked() is True:
                     pass
+                elif connection.is_blocked() is True:
+                    pass
                 else:
                     zone_list.append(connection.zone_b)
 
             elif zone_neighbors == connection.zone_b:
                 if connection.zone_a.is_blocked() is True:
+                    pass
+                elif connection.is_blocked() is True:
                     pass
                 else:
                     zone_list.append(connection.zone_a)

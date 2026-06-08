@@ -53,4 +53,19 @@ class Pathfinder:
                     
                     heapq.heappush(unvisited_zone, (new_distance, counter, neighbor))
                     counter += 1
-        return []
+    def find_k_paths(self, start_hub: Optional[Zone], end_hub: Optional[Zone], k: int) -> list[list[Zone]]:
+        first_path = self.find_path(start_hub, end_hub)
+        if not first_path:
+            return []
+
+        k_paths = [first_path]
+        candidates: list = []
+
+        for i in range(k - 1):
+            current_path = k_paths[i]
+            for j in range(len(current_path)):
+                super_node = current_path[j]
+                root_path = current_path[:j + 1]
+
+                removed_connections: list = []
+                removed_zones: list = []
