@@ -1,7 +1,7 @@
 PYTHON = python3
 PIP = pip
 MAIN = srcs/main.py
-FILE = maps/medium/01_dead_end_trap.txt
+FILE = maps/challenger/01_the_impossible_dream.txt
 REQS = requirements.txt
 
 

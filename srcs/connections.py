@@ -33,3 +33,6 @@ class Connection(Base):
             self.drone_transit.remove(drone_actual)
             return True
 
+
+
+

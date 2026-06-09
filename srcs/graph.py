@@ -47,15 +47,19 @@ class Graph:
         return zone_list
 
     def get_connection(self, zone_a: Zone, zone_b: Zone) -> Optional[Connection]:
+        if zone_a is None or zone_b is None:
+            return None
+        
         for connection in self.connection_dict.values():
-#            print(f"{connection} inside con")
- #           print(f"{connection.zone_a} con zone A")
-  #          print(f"{connection.zone_b} con zone b")
-   #         print(f"{zone_a}zone a")
-    #        print(f"{zone_b} zone b")
-            if (connection.zone_a.name == zone_a.name and connection.zone_b.name == zone_b.name) or (connection.zone_a.name == zone_b.name and connection.zone_b.name == zone_a.name):
-                print(f"{connection.zone_a.name} balsldaksdlas")
-                return connection
-            if (connection.zone_a is zone_b and connection.zone_b is zone_a) or (connection.zone_a is zone_a and connection.zone_b is zone_b):
+            zone_a_name = zone_a.name if zone_a else None
+            zone_b_name = zone_b.name if zone_b else None
+            
+            if zone_a_name is None or zone_b_name is None:
+                continue
+            
+            if ((connection.zone_a.name == zone_a_name and
+                 connection.zone_b.name == zone_b_name) or
+                (connection.zone_a.name == zone_b_name and
+                 connection.zone_b.name == zone_a_name)):
                 return connection
         return None

@@ -17,6 +17,7 @@ class Pathfinder:
             start_hub: 0
         }
         visited_path: dict[Zone, Zone] = {}
+        visited: set[Zone] = set()
         unvisited_zone = [(0, 0, start_hub)]
         neighbor: Zone
         counter = 0
@@ -25,18 +26,24 @@ class Pathfinder:
 
             current_distance, _, current_zone = heapq.heappop(unvisited_zone)
 
+            if current_zone in visited:
+                continue
+            visited.add(current_zone)
+
             if current_zone == end_hub:
                 destination = end_hub
-                reverse_path: list = []
+                reverse_path: list = [destination]
                 current = destination
                 while current in visited_path:
-                    reverse_path.append(current)
                     current = visited_path[current]
+                    reverse_path.append(current)
                 path_found = reverse_path[::-1]
                 return path_found
 
             for neighbor in self.graph.get_neighbors(current_zone):
 
+                if neighbor in visited:
+                    continue
                 if getattr(neighbor, 'temp_blocked', False):
                     continue
                 if neighbor.type_zone == Type_zone.blocked:
@@ -70,15 +77,12 @@ class Pathfinder:
                 cost += 1
         return cost
 
-
     def find_k_paths(self, start_hub: Optional[Zone], end_hub: Optional[Zone], k: int) -> list[list[Zone]]:
         first_path = self.find_path(start_hub, end_hub)
         if not first_path:
             return []
-
         k_paths = [first_path]
         candidates: list = []
-
         for i in range(k - 1):
             current_path = k_paths[i]
             for j in range(len(current_path)):
@@ -104,7 +108,7 @@ class Pathfinder:
                     candidate = base_path[:-1] + other_path
                     if candidate not in candidates and candidate not in k_paths:
                         candidates.append(candidate)
-                
+
                 for connection in removed_connections:
                     connection.temp_blocked = False
                 for zone in removed_zones:

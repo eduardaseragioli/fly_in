@@ -23,22 +23,21 @@ class Drone:
         self.transit_destination_zone: Optional[Zone] = None
 
     def move_drone(self, destination_zone: Zone) -> bool:
-        capacity = destination_zone.has_capacity()
+        if not destination_zone.has_capacity():
+            return False
+        
+        self.current_zone.remove_drone(self)
+        destination_zone.add_drone(self)
+        self.current_zone = destination_zone
+        
         if self.destination_zone == destination_zone:
             self.status = Status.arrived
-            destination_zone.remove_drone(self)
-        if capacity is False:
-            return False
         else:
-            self.current_zone.remove_drone(self)
-            destination_zone.add_drone(self)
-            self.current_zone = destination_zone
             self.status = Status.in_motion
-            if self.destination_zone == destination_zone:
-                self.status = Status.arrived
-            if self.planned_route:
-                self.planned_route.pop(0)
-            return True
+        
+        if self.planned_route:
+            self.planned_route.pop(0)
+        return True
 
     def start_transit_restricted(self, destination_zone: Zone, turno_current: int, connection: Connection) -> bool:
         from connections import Connection
