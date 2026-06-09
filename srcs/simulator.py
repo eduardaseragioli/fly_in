@@ -14,19 +14,44 @@ class Simulator:
         self.drones: list[Drone] = []
         self.nb_drones = nb_drones
 
+        paths = self.pathfinder.find_k_paths(
+            self.graph.start_zone,
+            self.graph.end_zone,
+            10
+        )
+
+        self.routes = [Route(path) for path in paths]
+
     def create_drone(self) -> None:
         for i in range(1, self.nb_drones + 1):
             drone_id = f"D{i}"
             drone = Drone(drone_id, self.graph.start_zone, self.graph.end_zone)
+
+            best_route = min(self.routes, key=lambda route: route.score())
+
+            drone.planned_route = best_route.path.copy()
+            best_route.assigned_drones += 1
+
             self.drones.append(drone)
 
     def run_simulator(self) -> None:
+        paths = self.pathfinder.find_k_paths(self.graph.start_zone, self.graph.end_zone, 3)
+        for i, p in enumerate(paths):
+            print(f"Path {i}: {[z.name for z in p]}")
+        print("0")
+        sleep(10)
         while not all(drone.status == Status.arrived for drone in self.drones):
+            print("Start")
+
+            
             turn_movements: list[str] = []
             moved_this_turn: set = set()
             completed_transit_this_turn: set = set()
 
             for drone in self.drones:
+                print(drone.id_drone)
+                print(f"{drone.transit_destination_zone} trabsit destin")
+                print(f"{drone.destination_zone} destin")
                 if drone.status == Status.transit_to_restricted:
                     if drone.turn_destination == self.current_turn:
                         if drone.current_connection is not None:
@@ -40,6 +65,7 @@ class Simulator:
                         if drone.planned_route:
                             drone.planned_route.pop(0)
                         if drone.transit_destination_zone == drone.destination_zone:
+                            print(f"{drone.id_drone} chegou")
                             drone.status = Status.arrived
                             drone.transit_destination_zone.remove_drone(drone)
                         else:
@@ -49,19 +75,34 @@ class Simulator:
                         completed_transit_this_turn.add(drone.id_drone)
 
             for drone in self.drones:
+                print("2")
+
+                #print(f"{drone.transit_destination_zone} trabsit destin")
+                #print(f"{drone.destination_zone} destin")
                 if drone.status != Status.arrived and drone.status != Status.transit_to_restricted:
                     if not drone.planned_route:
-                        drone.planned_route = self.pathfinder.find_path(
-                            drone.current_zone, drone.destination_zone)
+                        continue
                     if drone.planned_route:
                         next_zone = drone.planned_route[0]
                         connection = self.graph.get_connection(
                             drone.current_zone, next_zone)
-                        if connection and not connection.has_capacity():
+                        #print(f"{connection} connectionnessss")
+                        #print(f"{drone.current_zone} current zone")
+                        #print(f"{next_zone} next zone")
+                        if connection is None:
+                            #print("asuhdgsuaghdsa")
+                            continue
+                        if not connection.has_capacity():
+                            print("asdasd")
+                            continue
+                        if not next_zone.has_capacity():
+                            print("3")
                             continue
                         if drone.id_drone in moved_this_turn:
+                            print("4")
                             continue
                         if drone.id_drone in completed_transit_this_turn:
+                            print("5")
                             continue
                         if next_zone.type_zone == Type_zone.restricted:
                             if drone.start_transit_restricted(next_zone, self.current_turn, connection):
@@ -71,6 +112,8 @@ class Simulator:
                             if drone.move_drone(next_zone):
                                 turn_movements.append(
                                     f"{drone.id_drone}-{next_zone.name}")
+                        print(f"{drone.transit_destination_zone} trabsit destin")
+
             if turn_movements:
                 self.history.append(" ".join(turn_movements))
 
@@ -83,3 +126,10 @@ class Simulator:
 
     def get_turns(self) -> int:
         return self.current_turn
+
+class Route:
+    def __init__(self, path: list[Zone]) -> None:
+        self.path = path
+        self.assigned_drones: int = 0
+    def score(self) -> int:
+        return len(self.path) + self.assigned_drones

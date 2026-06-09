@@ -11,14 +11,15 @@ class Type_zone(str, Enum):
 
 class Zone(Base):
 
-    def __init__(self, name: str, coordinates: tuple[int, int], type_zone: Type_zone = Type_zone.normal, color: str = "None", max_drones: int = 1) -> None:
+    def __init__(self, name: str, coordinates: tuple[int, int], type_zone: Type_zone = Type_zone.normal, color: str = "None", max_drones: int = 1, temp_blocked: bool = False, is_end_zone: bool = False) -> None:
         self.name = name
         self.coordinates = coordinates
         self.color = color
         self.type_zone = type_zone
         self.max_drones = max_drones
         self.drone_actual: list = []
-        self.is_end_zone: bool = False
+        self.temp_blocked: bool = temp_blocked
+        self.is_end_zone = is_end_zone
 
     def has_capacity(self) -> bool:
         if self.is_end_zone:

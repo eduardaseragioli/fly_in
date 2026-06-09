@@ -37,6 +37,10 @@ class Pathfinder:
 
             for neighbor in self.graph.get_neighbors(current_zone):
 
+                if getattr(neighbor, 'temp_blocked', False):
+                    continue
+                if neighbor.type_zone == Type_zone.blocked:
+                    continue
                 if neighbor.type_zone == Type_zone.normal:
                     cost = 1
                 elif neighbor.type_zone == Type_zone.restricted:
@@ -55,6 +59,17 @@ class Pathfinder:
                     heapq.heappush(
                         unvisited_zone, (new_distance, counter, neighbor))
                     counter += 1
+        return []
+
+    def _path_cost(self, path: list[Zone]) -> int:
+        cost = 0
+        for z in path:
+            if z.type_zone == Type_zone.restricted:
+                cost += 2
+            else:
+                cost += 1
+        return cost
+
 
     def find_k_paths(self, start_hub: Optional[Zone], end_hub: Optional[Zone], k: int) -> list[list[Zone]]:
         first_path = self.find_path(start_hub, end_hub)
@@ -77,5 +92,27 @@ class Pathfinder:
                     if j > 0:
                         prev_node = current_path[j - 1]
                         if (connection.zone_a == super_node and connection.zone_b == prev_node) or (connection.zone_a == prev_node and connection.zone_b == super_node):
-                            connection.is_blocked = True
+                            connection.temp_blocked = True
                             removed_connections.append(connection)
+
+                for zone in base_path[:-1]:
+                    zone.temp_blocked = True
+                    removed_zones.append(zone)
+
+                other_path = self.find_path(super_node, end_hub)
+                if other_path:
+                    candidate = base_path[:-1] + other_path
+                    if candidate not in candidates and candidate not in k_paths:
+                        candidates.append(candidate)
+                
+                for connection in removed_connections:
+                    connection.temp_blocked = False
+                for zone in removed_zones:
+                    zone.temp_blocked = False
+
+            if not candidates:
+                break
+            best_candidate = min(candidates, key=self._path_cost)
+            k_paths.append(best_candidate)
+            candidates.remove(best_candidate)
+        return k_paths
