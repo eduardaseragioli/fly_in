@@ -46,7 +46,3 @@ class Zone(Base):
             return True 
         else:
             return False
-
-
-
-

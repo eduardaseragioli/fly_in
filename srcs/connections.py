@@ -32,7 +32,4 @@ class Connection(Base):
         else:
             self.drone_transit.remove(drone_actual)
             return True
-
-
-
-
+            

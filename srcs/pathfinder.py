@@ -1,11 +1,30 @@
 from __future__ import annotations
-from parser import Parser
 from graph import Graph
-from zones import Zone
+from zones import Zone, Type_zone
 from typing import Optional
-from zones import Type_zone, Zone
-from connections import Connection
 import heapq
+
+
+class ReservationTable:
+    def __init__(self):
+        self.zone_reservations: dict[tuple, int] = {}
+        self.edge_reservations: dict[tuple, int] = {}
+
+    def is_zone_available(self, zone_name: str, turn: int, max_capacity: int) -> bool:
+        return self.zone_reservations.get((zone_name, turn), 0) < max_capacity
+
+    def is_edge_available(self, name_a: str, name_b: str, turn: int, max_capacity: int) -> bool:
+        key = tuple(sorted([name_a, name_b]))
+        return self.edge_reservations.get((key, turn), 0) < max_capacity
+
+    def reserve_zone(self, zone_name: str, turn: int):
+        self.zone_reservations[(zone_name, turn)] = \
+            self.zone_reservations.get((zone_name, turn), 0) + 1
+
+    def reserve_edge(self, name_a: str, name_b: str, turn: int):
+        key = tuple(sorted([name_a, name_b]))
+        self.edge_reservations[(key, turn)] = \
+            self.edge_reservations.get((key, turn), 0) + 1
 
 
 class Pathfinder:
@@ -13,110 +32,133 @@ class Pathfinder:
         self.graph = graph
 
     def find_path(self, start_hub: Optional[Zone], end_hub: Optional[Zone]) -> list[Zone]:
-        accumulated_distances: dict[Zone, int] = {
-            start_hub: 0
-        }
-        visited_path: dict[Zone, Zone] = {}
+        """Dijkstra simples sem reservas, retorna lista de zonas."""
+        dist: dict[Zone, int] = {start_hub: 0}
+        prev: dict[Zone, Zone] = {}
         visited: set[Zone] = set()
-        unvisited_zone = [(0, 0, start_hub)]
-        neighbor: Zone
+        heap = [(0, 0, start_hub)]
         counter = 0
 
-        while unvisited_zone:
-
-            current_distance, _, current_zone = heapq.heappop(unvisited_zone)
-
-            if current_zone in visited:
+        while heap:
+            d, _, zone = heapq.heappop(heap)
+            if zone in visited:
                 continue
-            visited.add(current_zone)
+            visited.add(zone)
 
-            if current_zone == end_hub:
-                destination = end_hub
-                reverse_path: list = [destination]
-                current = destination
-                while current in visited_path:
-                    current = visited_path[current]
-                    reverse_path.append(current)
-                path_found = reverse_path[::-1]
-                return path_found
+            if zone == end_hub:
+                path = [end_hub]
+                cur = end_hub
+                while cur in prev:
+                    cur = prev[cur]
+                    path.append(cur)
+                path.reverse()
+                return path
 
-            for neighbor in self.graph.get_neighbors(current_zone):
-
-                if neighbor in visited:
-                    continue
-                if getattr(neighbor, 'temp_blocked', False):
-                    continue
+            for neighbor in self.graph.get_neighbors(zone):
                 if neighbor.type_zone == Type_zone.blocked:
                     continue
-                if neighbor.type_zone == Type_zone.normal:
-                    cost = 1
-                elif neighbor.type_zone == Type_zone.restricted:
-                    cost = 2
-                elif neighbor.type_zone == Type_zone.priority:
-                    cost = 1
-                else:
-                    cost = 1
-
-                new_distance = current_distance + cost
-
-                if neighbor not in accumulated_distances or new_distance < accumulated_distances[neighbor]:
-                    accumulated_distances[neighbor] = new_distance
-                    visited_path[neighbor] = current_zone
-
-                    heapq.heappush(
-                        unvisited_zone, (new_distance, counter, neighbor))
+                cost = 2 if neighbor.type_zone == Type_zone.restricted else 1
+                nd = d + cost
+                if neighbor not in dist or nd < dist[neighbor]:
+                    dist[neighbor] = nd
+                    prev[neighbor] = zone
                     counter += 1
+                    heapq.heappush(heap, (nd, counter, neighbor))
         return []
 
-    def _path_cost(self, path: list[Zone]) -> int:
-        cost = 0
-        for z in path:
-            if z.type_zone == Type_zone.restricted:
-                cost += 2
-            else:
-                cost += 1
-        return cost
+    def find_path_with_reservations(
+        self,
+        start_hub: Optional[Zone],
+        end_hub: Optional[Zone],
+        table: ReservationTable,
+        start_turn: int = 0,
+        max_turn: int = 200
+    ) -> list[tuple[Zone, int]]:
+        """
+        Dijkstra espaço-tempo com reservation table.
+        Retorna lista de (zona, turno) com os turnos absolutos de chegada.
+        """
+        start_node = (start_hub, start_turn)
+        dist: dict[tuple, float] = {start_node: 0}
+        prev: dict[tuple, Optional[tuple]] = {start_node: None}
+        visited: set[tuple] = set()
+        heap = [(0, 0, start_hub, start_turn)]
+        counter = 0
 
-    def find_k_paths(self, start_hub: Optional[Zone], end_hub: Optional[Zone], k: int) -> list[list[Zone]]:
-        first_path = self.find_path(start_hub, end_hub)
-        if not first_path:
-            return []
-        k_paths = [first_path]
-        candidates: list = []
-        for i in range(k - 1):
-            current_path = k_paths[i]
-            for j in range(len(current_path)):
-                super_node = current_path[j]
-                base_path = current_path[:j + 1]
+        while heap:
+            d, _, zone, turn = heapq.heappop(heap)
+            node = (zone, turn)
 
-                removed_connections: list = []
-                removed_zones: list = []
+            if node in visited:
+                continue
+            visited.add(node)
 
-                for connection in list(self.graph.connection_dict.values()):
-                    if j > 0:
-                        prev_node = current_path[j - 1]
-                        if (connection.zone_a == super_node and connection.zone_b == prev_node) or (connection.zone_a == prev_node and connection.zone_b == super_node):
-                            connection.temp_blocked = True
-                            removed_connections.append(connection)
+            if zone == end_hub:
+                # Reconstruir caminho
+                path = []
+                cur = node
+                while cur is not None:
+                    path.append(cur)
+                    cur = prev[cur]
+                path.reverse()
+                return path
 
-                for zone in base_path[:-1]:
-                    zone.temp_blocked = True
-                    removed_zones.append(zone)
+            if turn >= max_turn:
+                continue
 
-                other_path = self.find_path(super_node, end_hub)
-                if other_path:
-                    candidate = base_path[:-1] + other_path
-                    if candidate not in candidates and candidate not in k_paths:
-                        candidates.append(candidate)
+            # Mover para vizinhos
+            for neighbor in self.graph.get_neighbors(zone):
+                if neighbor.type_zone == Type_zone.blocked:
+                    continue
 
-                for connection in removed_connections:
-                    connection.temp_blocked = False
-                for zone in removed_zones:
-                    zone.temp_blocked = False
+                weight = 2 if neighbor.type_zone == Type_zone.restricted else 1
+                next_turn = turn + weight
 
-            if not candidates:
-                break
-            best_candidate = min(candidates, key=self._path_cost)
-            k_paths.append(best_candidate)
-            candidates.remove(best_candidate)
-        return k_paths
+                if next_turn > max_turn:
+                    continue
+
+                # Verificar capacidade da conexão
+                conn = self.graph.get_connection(zone, neighbor)
+                if conn and not table.is_edge_available(
+                        zone.name, neighbor.name, turn, conn.max_link_capacity):
+                    continue
+
+                # Verificar capacidade da zona destino (exceto end_hub e start_hub)
+                if neighbor != end_hub and neighbor != start_hub:
+                    # Para restricted, verificar todos os turnos de ocupação
+                    if neighbor.type_zone == Type_zone.restricted:
+                        ok = all(
+                            table.is_zone_available(neighbor.name, t, neighbor.max_drones)
+                            for t in range(turn + 1, next_turn + 1)
+                        )
+                    else:
+                        ok = table.is_zone_available(
+                            neighbor.name, next_turn, neighbor.max_drones)
+                    if not ok:
+                        continue
+
+                next_node = (neighbor, next_turn)
+                new_dist = d + weight
+                if new_dist < dist.get(next_node, float('inf')):
+                    dist[next_node] = new_dist
+                    prev[next_node] = node
+                    counter += 1
+                    heapq.heappush(heap, (new_dist, counter, neighbor, next_turn))
+
+            # Esperar na zona atual
+            wait_turn = turn + 1
+            if wait_turn <= max_turn:
+                can_wait = (
+                    zone == start_hub or
+                    table.is_zone_available(zone.name, wait_turn, zone.max_drones)
+                )
+                if can_wait:
+                    wait_node = (zone, wait_turn)
+                    wait_dist = d + 1
+                    if wait_dist < dist.get(wait_node, float('inf')):
+                        dist[wait_node] = wait_dist
+                        prev[wait_node] = node
+                        counter += 1
+                        heapq.heappush(heap, (wait_dist, counter, zone, wait_turn))
+
+        return []
