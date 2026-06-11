@@ -139,7 +139,7 @@ class Visualizer:
                 
 
                 elif zone == self.graph.end_zone:
-                    img_x = pixel_position[0] - self.end_img.get_width()
+                    img_x = pixel_position[0] - self.end_img.get_width() // 2
                     img_y = pixel_position[1] - self.end_img.get_height()
 
                     img_x = max(0, min(img_x, self.width - self.end_img.get_width()))
