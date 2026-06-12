@@ -10,7 +10,6 @@ FILE = maps/easy/01_linear_path.txt
 #FILE = maps/easy/02_simple_fork.txt
 REQS = requirements.txt
 
-
 all: install 
 
 $(VENV_BIN)/activate:
