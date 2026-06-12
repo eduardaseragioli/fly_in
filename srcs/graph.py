@@ -5,13 +5,19 @@ from typing import Optional
 
 
 class Graph:
+    """Represents the airspace as a graph of zones connected by links."""
+
     def __init__(self, start_zone: Zone, end_zone: Zone) -> None:
+        """Initialize the graph with a start and end zone."""
+
         self.zone_dict: dict[str, Zone] = {}
         self.connection_dict: dict[str, Connection] = {}
-        self.start_zone = start_zone
-        self.end_zone = end_zone
+        self.start_zone: Zone = start_zone
+        self.end_zone: Zone = end_zone
 
     def add_zone(self, zone_will_installed: Zone) -> bool:
+        """Add a zone to the graph if it does not already exist."""
+
         if zone_will_installed.name in self.zone_dict:
             return False
         else:
@@ -19,6 +25,8 @@ class Graph:
             return True
 
     def add_connection(self, connection_will_installed: Connection) -> bool:
+        """Add a connection to the graph if it does not already exist."""
+
         if connection_will_installed.name in self.connection_dict:
             return False
         else:
@@ -26,6 +34,8 @@ class Graph:
             return True
 
     def get_neighbors(self, zone_neighbors: Zone) -> list[Zone]:
+        """Return all reachable adjacent zones from the given zone."""
+
         zone_list: list[Zone] = []
 
         for connection in self.connection_dict.values():
@@ -47,6 +57,8 @@ class Graph:
         return zone_list
 
     def get_connection(self, zone_a: Zone, zone_b: Zone) -> Optional[Connection]:
+        """Find the connection between two zones regardless of direction."""
+        
         if zone_a is None or zone_b is None:
             return None
         
