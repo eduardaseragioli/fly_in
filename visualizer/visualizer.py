@@ -4,17 +4,20 @@ import pygame
 import os
 
 class Visualizer:
+    """Renders the airspace graph and animates drone movements using pygame."""
 
     def __init__(self, graph: Graph, history: list[str]) -> None:
-        self.graph = graph
-        self.history = history
+        """Initialize the visualizer with the graph and simulation history."""
+
+        self.graph: Graph = graph
+        self.history: list[str] = history
 
         self.height: int = 1000
         self.width: int = 1000
-        self.screen = None
-        self.fly_in_status = False
+        self.screen: pygame.Surface | None = None
+        self.fly_in_status: bool = False
         self.current_turn: int = 0
-        self.CORES = {
+        self.CORES: dict[str, tuple[int, int, int]] = {
             "normal": (0, 176, 112),
             "blocked": (193, 43, 59),
             "restricted": (47, 72, 88),
@@ -29,6 +32,8 @@ class Visualizer:
         }
 
     def start_pygame(self) -> None:
+        """Initialize pygame, create the window, and load all image assets."""
+
         pygame.init()
 
         self.screen = pygame.display.set_mode((self.height, self.width))
@@ -49,8 +54,10 @@ class Visualizer:
         self.drone_img = pygame.transform.scale(raw_drone, (80, 80))
 
     def limits_graph(self, ) -> None:
-        self.all_x: list = []
-        self.all_y: list = []
+        """Compute the bounding box of all zone coordinates for coordinate conversion."""
+
+        self.all_x: list[float] = []
+        self.all_y: list[float] = []
         for zone in self.graph.zone_dict.values():
             x, y = zone.coordinates
             self.all_x.append(x)
@@ -61,7 +68,8 @@ class Visualizer:
         self.min_y = min(self.all_y)
         self.max_y = max(self.all_y)
 
-    def _convert_coordinates(self, value_x, value_y) -> tuple:
+    def _convert_coordinates(self, value_x: float, value_y: float) -> tuple[float, float]:
+        """Convert map grid coordinates to pygame screen pixel coordinates."""
 
         self.margin = 50
 
@@ -76,7 +84,9 @@ class Visualizer:
 
         return (pixel_x, pixel_y)
 
-    def _color_zone(self, zone: Zone):
+    def _color_zone(self, zone: Zone) -> tuple[int, int, int]:
+        """Return the display color for a given zone based on its type."""
+
         if zone == self.graph.start_zone:
             return self.CORES["normal"]
                 
@@ -97,9 +107,11 @@ class Visualizer:
         return (200, 200, 200)
 
     def _parse_history(self) -> dict[int, dict[str, str]]:
-        turns: dict = {}
+        """Parse the simulation history into a turn-indexed drone position map."""
 
-        all_drones_ids = set()
+        turns: dict[int, dict[str, str]] = {}
+
+        all_drones_ids: set[str] = set()
         for line in self.history:
             for movement in line.split(" "):
                 parts = movement.split("-")
@@ -116,18 +128,20 @@ class Visualizer:
                 turns[turn_idx + 1][drone_id] = zone_name
         return turns
 
-    def _draw_legend(self) -> None:
-        legend_items = [
+    def _draw_legend(self) -> int:
+        """Draw the zone type legend in the top-right corner of the screen."""
+
+        legend_items: list[tuple[str, tuple[int, int, int]]] = [
             ("Normal zone", self.CORES["normal"]),
             ("Blocked zone", self.CORES["blocked"]),
             ("Restricted zone", self.CORES["restricted"]),
             ("Priority zone", self.CORES["priority"]),
         ]
         font = pygame.font.SysFont("Arial", 16)
-        x = self.width - 200
-        y = 20
-        square_size = 16
-        padding = 8
+        x: int = self.width - 200
+        y: int = 20
+        square_size: int = 16
+        padding: int = 8
 
         for label, color in legend_items:
             pygame.draw.rect(self.screen, color, (x, y, square_size, square_size))
@@ -137,11 +151,13 @@ class Visualizer:
         return y
 
     def rotate_pygame(self):
+        """Run the main pygame loop, rendering the graph and animating drones."""
+    
         self.start_pygame()
         self.limits_graph()
-        clock = pygame.time.Clock()
-        drone_positions = self._parse_history()
-        mode = "paused"
+        clock: pygame.time.Clock = pygame.time.Clock()
+        drone_positions: dict[int, dict[str, str]] = self._parse_history()
+        mode: str = "paused"
 
         while self.fly_in_status:
             self.screen.blit(self.background, (0, 0))
@@ -212,10 +228,10 @@ class Visualizer:
                     "M: manual"
                 ]
             
-            y_after_legend = self._draw_legend()
-            x_mode = self.width - 200
+            y_after_legend: int = self._draw_legend()
+            x_mode: int = self.width - 200
             y_mode = y_after_legend + 10
-            line_spacing = 24
+            line_spacing: int = 24
 
             for line in msg:
                 text_mode = font_mode.render(line, True, (50, 50, 50))
@@ -224,7 +240,7 @@ class Visualizer:
 
             self._draw_legend()
 
-            advance_one = False
+            advance_one: bool = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.fly_in_status = False
