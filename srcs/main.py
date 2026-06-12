@@ -12,17 +12,19 @@ from simulator import Simulator
 from visualizer import Visualizer
 
 def main() -> None:
-    file_path = sys.argv[1]
-    parser = Parser(file_path)
+    """Entry point for the fly_in drone routing simulation."""
+
+    file_path: str = sys.argv[1]
+    parser: Parser = Parser(file_path)
     graph = parser.parse()
-    nb_drones = parser.nb_drones
-    pathfinder = Pathfinder(graph)
-    simulator = Simulator(graph, nb_drones, pathfinder)
+    nb_drones: int = parser.nb_drones
+    pathfinder: Pathfinder = Pathfinder(graph)
+    simulator: Simulator = Simulator(graph, nb_drones, pathfinder)
     simulator.create_drone()
     simulator.run_simulator()
     simulator.print_output()
 
-    visualizer = Visualizer(graph, simulator.history)
+    visualizer: Visualizer = Visualizer(graph, simulator.history)
     visualizer.rotate_pygame()
 
 
