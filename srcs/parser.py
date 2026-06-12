@@ -6,15 +6,22 @@ from pathlib import Path
 
 
 class Parser:
+    """Parses a map configuration file and builds a Graph object."""
+
     def __init__(self, file_path: Path) -> None:
-        self.file_path = file_path
+        """Initialize the parser with a path to the map file."""
+
+        self.file_path: Path = file_path
 
     def _parse_metadata(self, line: str) -> list:
+        """Extract zone type, color, and max_drones from a metadata block"""
+
         if '[' in line:
-            type_zone = Type_zone.normal
-            color = "None"
-            max_drones = 1
+            type_zone: Type_zone = Type_zone.normal
+            color: str = "None"
+            max_drones: int = 1
             metadata = line[line.index('[') + 1: line.index(']')]
+
             for pair in metadata.split():
                 key, value = pair.split('=')
                 if key == "zone":
@@ -31,10 +38,13 @@ class Parser:
         return [type_zone, color, max_drones]
 
     def parse(self) -> Graph:
+        """Parse the map file and construct a Graph with zones and connections."""
+
         start_zone: Optional[Zone] = None
         end_zone: Optional[Zone] = None
         zones: list[Zone] = []
         connection: list[Connection] = []
+        
         with open(self.file_path, 'r') as file:
             for line in file:
                 line = line.strip()
