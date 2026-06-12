@@ -5,6 +5,7 @@ from typing import Optional
 
 
 class Status(Enum):
+    """Represents the current movement state of a drone."""
     stopped = "stopped"
     in_motion = "in_motion"
     transit_to_restricted = "transit_to_restricted"
@@ -12,21 +13,27 @@ class Status(Enum):
 
 
 class Drone:
+    """Represents a drone navigating through the graph from start to destination."""
+
     def __init__(self, id_drone: str, current_zone: Zone,
-                 destination_zone: Zone, current_connection=None) -> None:
-        self.id_drone = id_drone
-        self.current_zone = current_zone
-        self.destination_zone = destination_zone
+                 destination_zone: Zone, current_connection: Optional[Connection] =None) -> None:
+
+        """Initialize a drone with its starting position and destination."""
+        self.id_drone: str = id_drone
+        self.current_zone: Zone = current_zone
+        self.destination_zone: Zone = destination_zone
         self.planned_route: list[Zone] = []
-        self.planned_path: list[tuple] = []   # ← novo
-        self.path_index: int = 0               # ← novo
+        self.planned_path: list[tuple[Zone, int]] = []
+        self.path_index: int = 0
         self.status: Status = Status.stopped
-        self.turn_destination = None
-        self.current_connection = current_connection
-        self.transit_destination_zone = None
+        self.turn_destination: Optional[int] = None
+        self.current_connection: Optional[Connection] = current_connection
+        self.transit_destination_zone: Optional[Zone] = None
         self.start_turn: int = 0
 
     def move_drone(self, destination_zone: Zone) -> bool:
+        """Move the drone to an adjacent zone if it has capacity."""
+
         if not destination_zone.has_capacity():
             return False
         
@@ -38,7 +45,7 @@ class Drone:
         
         if self.destination_zone == destination_zone:
             self.status = Status.arrived
-            # não adiciona no goal, drone saiu do sistema
+
         else:
             destination_zone.add_drone(self)
             self.status = Status.in_motion
@@ -46,6 +53,8 @@ class Drone:
         return True
 
     def start_transit_restricted(self, destination_zone: Zone, turno_current: int, connection: Connection) -> bool:
+        """Begin a two-turn transit through a restricted zone via a connection."""
+        
         from connections import Connection
         capacity = connection.has_capacity()
         if capacity is False:
