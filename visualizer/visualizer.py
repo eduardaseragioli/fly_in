@@ -45,10 +45,10 @@ class Visualizer:
         self.background = pygame.transform.scale(raw_bg, (self.width, self.height))
 
         raw_start = pygame.image.load(os.path.join(os.path.dirname(__file__), "start.png"))
-        self.start_img = pygame.transform.scale(raw_start, (120, 120))
+        self.start_img = pygame.transform.scale(raw_start, (80, 80))
 
         raw_end = pygame.image.load(os.path.join(os.path.dirname(__file__), "end.png"))
-        self.end_img = pygame.transform.scale(raw_end, (120, 120))
+        self.end_img = pygame.transform.scale(raw_end, (80, 80))
 
         raw_drone = pygame.image.load(os.path.join(os.path.dirname(__file__), "drone.png"))
         self.drone_img = pygame.transform.scale(raw_drone, (80, 80))
@@ -68,19 +68,40 @@ class Visualizer:
         self.min_y = min(self.all_y)
         self.max_y = max(self.all_y)
 
+    def _compute_margin(self) -> int:
+        x_spread = self.max_x - self.min_x
+        y_spread = self.max_y - self.min_y
+        spread = max(x_spread, y_spread)
+        if spread == 0:
+            return 400
+
+        available = min(self.width, self.height)
+        space_per_unit = available / (spread + 2)
+
+        if space_per_unit < 80:
+            return 50
+        else:
+            margin = int((available - spread * space_per_unit) / 2)
+            return max(50, min(450, margin))
+
+
     def _convert_coordinates(self, value_x: float, value_y: float) -> tuple[float, float]:
         """Convert map grid coordinates to pygame screen pixel coordinates."""
 
-        self.margin = 50
+        self.margin = self._compute_margin()
+        range_x = self.max_x - self.min_x
+        range_y = self.max_y - self.min_y
+            
+        if range_x == 0:
+            range_x = 1
 
-        try:            
-            pixel_x = self.margin + (value_x - self.min_x) / (self.max_x - self.min_x) * (self.width - 2 * self.margin)
-            pixel_y_inverted = self.margin + (value_y - self.min_y) / (self.max_y - self.min_y) * (self.height - 2 * self.margin)
-            pixel_y = self.height - pixel_y_inverted
-        except ZeroDivisionError:
-            pixel_x = self.margin + (value_x - self.min_x) * (self.width - 2 * self.margin) if self.max_x != self.min_x else self.width // 2
+        pixel_x = self.margin + (value_x - self.min_x) / range_x * (self.width - 2 * self.margin)
+        
+        if range_y == 0:
             pixel_y = self.height // 2
-
+        else:
+            pixel_y_inverted = self.margin + (value_y - self.min_y) / range_y * (self.height - 2 * self.margin)
+            pixel_y = self.height - pixel_y_inverted
 
         return (pixel_x, pixel_y)
 
@@ -120,7 +141,7 @@ class Visualizer:
         turns[0] = {drone_id: self.graph.start_zone.name for drone_id in all_drones_ids}
 
         for turn_idx, line in enumerate(self.history):
-            turns[turn_idx + 1] = {}
+            turns[turn_idx + 1] = dict(turns[turn_idx])
             for movement in line.split(" "):
                 parts = movement.split("-")
                 drone_id = parts[0]
@@ -180,19 +201,12 @@ class Visualizer:
 
 
                 if zone == self.graph.start_zone:
-                    img_x = max(0, pixel_position[0] - self.start_img.get_width() // 2)
-                    img_y = max(0, pixel_position[1] - self.start_img.get_height() // 2)
-                    self.screen.blit(self.start_img, (img_x, img_y))
-                
+                    rect = self.start_img.get_rect(center=(int(pixel_position[0]), int(pixel_position[1])))
+                    self.screen.blit(self.start_img, rect)
 
                 elif zone == self.graph.end_zone:
-                    img_x = pixel_position[0] - self.end_img.get_width() // 2
-                    img_y = pixel_position[1] - self.end_img.get_height() // 2
-
-                    img_x = max(0, min(img_x, self.width - self.end_img.get_width()))
-                    img_y = max(0, img_y)
-                    self.screen.blit(self.end_img, (img_x, img_y))
-
+                    rect = self.end_img.get_rect(center=(int(pixel_position[0]), int(pixel_position[1])))
+                    self.screen.blit(self.end_img, rect)
 
                 else:
                     zone_color = self._color_zone(zone)
@@ -255,13 +269,12 @@ class Visualizer:
 
             if mode == "auto":
                 clock.tick(2)
-                self.current_turn += 1
-                if self.current_turn >= len(self.history):
-                    self.current_turn = 0
+                if self.current_turn < len(drone_positions) - 1:
+                    self.current_turn += 1
             elif mode == "manual" and advance_one:
-                self.current_turn += 1
-                if self.current_turn >= len(self.history):
-                    self.current_turn = 0
+                if self.current_turn < len(drone_positions) - 1:
+                    self.current_turn += 1
+
 
             pygame.display.flip()
         pygame.quit()

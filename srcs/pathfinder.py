@@ -4,7 +4,6 @@ from zones import Zone, Type_zone
 from typing import Optional
 import heapq
 
-
 class ReservationTable:
     """Tracks zone and edge occupancy by turn for cooperative pathfinding."""
 
@@ -52,11 +51,11 @@ class Pathfinder:
         dist: dict[Zone, int] = {start_hub: 0}
         prev: dict[Zone, Zone] = {}
         visited: set[Zone] = set()
-        heap: list[tuple[int, int, Zone]] = [(0, 0, start_hub)]
+        heap: list[tuple[int, int, int, Zone]] = [(0, 0, 0, start_hub)]
         counter: int = 0
 
         while heap:
-            d, _, zone = heapq.heappop(heap)
+            d, _, _, zone = heapq.heappop(heap)
             if zone in visited:
                 continue
             visited.add(zone)
@@ -79,7 +78,9 @@ class Pathfinder:
                     dist[neighbor] = nd
                     prev[neighbor] = zone
                     counter += 1
-                    heapq.heappush(heap, (nd, counter, neighbor))
+                    priority_bonus = -1 if neighbor.type_zone == Type_zone.priority else 0
+
+                    heapq.heappush(heap, (nd, priority_bonus, counter, neighbor))
         return []
 
     def find_path_with_reservations(
@@ -96,11 +97,11 @@ class Pathfinder:
         dist: dict[tuple[Zone, int], float] = {start_node: 0}
         prev: dict[tuple[Zone, int], Optional[tuple[Zone, int]]] = {start_node: None}
         visited: set[tuple[Zone, int]] = set()
-        heap: list[tuple[float, int, Zone, int]] = [(0, 0, start_hub, start_turn)]
+        heap: list[tuple[float, int, int, Zone, int]] = [(0, 0, 0, start_hub, start_turn)]
         counter: int = 0
 
         while heap:
-            d, _, zone, turn = heapq.heappop(heap)
+            d, _, _, zone, turn = heapq.heappop(heap)
             node: tuple[Zone, int]  = (zone, turn)
 
             if node in visited:
@@ -152,7 +153,10 @@ class Pathfinder:
                     dist[next_node] = new_dist
                     prev[next_node] = node
                     counter += 1
-                    heapq.heappush(heap, (new_dist, counter, neighbor, next_turn))
+
+                    priority_bonus = -1 if neighbor.type_zone == Type_zone.priority else 0
+
+                    heapq.heappush(heap, (new_dist, priority_bonus, counter, neighbor, next_turn))
 
             wait_turn = turn + 1
             if wait_turn <= max_turn:
@@ -167,6 +171,6 @@ class Pathfinder:
                         dist[wait_node] = wait_dist
                         prev[wait_node] = node
                         counter += 1
-                        heapq.heappush(heap, (wait_dist, counter, zone, wait_turn))
+                        heapq.heappush(heap, (wait_dist, 0, counter, zone, wait_turn))
 
         return []

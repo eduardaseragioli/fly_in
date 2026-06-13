@@ -4,10 +4,11 @@ PYTHON = $(VENV_BIN)/python3
 PIP = $(VENV_BIN)/pip
 
 MAIN = srcs/main.py
-FILE = maps/easy/01_linear_path.txt
+#FILE = maps/easy/01_linear_path.txt
 #FILE = maps/challenger/01_the_impossible_dream.txt
 #FILE = maps/hard/01_maze_nightmare.txt
 #FILE = maps/easy/02_simple_fork.txt
+FILE = maps/medium/03_priority_puzzle.txt
 REQS = requirements.txt
 
 all: install 

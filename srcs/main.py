@@ -14,7 +14,12 @@ from visualizer import Visualizer
 def main() -> None:
     """Entry point for the fly_in drone routing simulation."""
 
+    if len(sys.argv) != 2:
+        print("Usage: python3 main.py <map_file>")
+        sys.exit(1)
+
     file_path: str = sys.argv[1]
+
     parser: Parser = Parser(file_path)
     graph = parser.parse()
     nb_drones: int = parser.nb_drones
