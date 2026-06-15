@@ -2,14 +2,18 @@ from __future__ import annotations
 from graph import Graph
 from pathfinder import Pathfinder, ReservationTable
 from drone import Drone, Status
-from zones import Zone, Type_zone
+from zones import Zone
 
 
 class Simulator:
     """Plans and executes the drone routing simulation turn by turn."""
 
-    def __init__(self, graph: Graph, nb_drones: int, pathfinder: Pathfinder) -> None:
-        """Initialize the simulator with a graph, drone count, and pathfinder."""
+    def __init__(self,
+                 graph: Graph,
+                 nb_drones: int,
+                 pathfinder: Pathfinder) -> None:
+        """Initialize the simulator with a graph,
+                drone count, and pathfinder."""
 
         self.graph: Graph = graph
         self.pathfinder: Pathfinder = pathfinder
@@ -19,17 +23,21 @@ class Simulator:
         self.nb_drones: int = nb_drones
 
     def create_drone(self) -> None:
-        """Plan collision-free paths for all drones using the reservation table."""
+        """Plan collision-free paths for all
+                drones using the reservation table."""
 
         table: ReservationTable = ReservationTable()
 
         for i in range(1, self.nb_drones + 1):
             drone_id: str = f"D{i}"
-            drone: Drone = Drone(drone_id, self.graph.start_zone, self.graph.end_zone)
+            drone: Drone = Drone(
+                drone_id, self.graph.start_zone, self.graph.end_zone)
 
-            path: list[tuple[Zone, int]] = self.pathfinder.find_path_with_reservations(
-                self.graph.start_zone, self.graph.end_zone,
-                table, start_turn=0)
+            path: list[tuple[Zone, int]] = (
+                self.pathfinder.find_path_with_reservations(
+                    self.graph.start_zone, self.graph.end_zone,
+                    table, start_turn=0)
+            )
 
             if not path:
                 self.drones.append(drone)
@@ -44,19 +52,23 @@ class Simulator:
                         if conn:
                             table.reserve_edge(zone.name, next_zone.name, turn)
 
-            drone.planned_path = [(z, t) for z, t in path if z != self.graph.start_zone]
+            drone.planned_path = [(z, t)
+                                  for z, t in path
+                                  if z != self.graph.start_zone]
             drone.path_index = 0
             drone.start_turn = 0
             self.drones.append(drone)
 
     def run_simulator(self) -> None:
-        """Execute the simulation by moving all drones along their planned paths."""
+        """Execute the simulation by moving all
+                drones along their planned paths."""
 
         delivered: set[str] = set()
         self.current_turn = 0
         max_turns = 1000
 
-        while len(delivered) < len(self.drones) and self.current_turn < max_turns:
+        while len(delivered) < len(self.drones) \
+                and self.current_turn < max_turns:
             self.current_turn += 1
             movements: list[str] = []
 
@@ -105,4 +117,3 @@ class Simulator:
     def get_turns(self) -> int:
         """Return the total number of turns taken by the simulation."""
         return self.current_turn
-    

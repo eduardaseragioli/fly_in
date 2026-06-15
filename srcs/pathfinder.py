@@ -4,6 +4,7 @@ from zones import Zone, Type_zone
 from typing import Optional
 import heapq
 
+
 class ReservationTable:
     """Tracks zone and edge occupancy by turn for cooperative pathfinding."""
 
@@ -13,12 +14,19 @@ class ReservationTable:
         self.zone_reservations: dict[tuple[str, int], int] = {}
         self.edge_reservations: dict[tuple[tuple[str, str], int], int] = {}
 
-    def is_zone_available(self, zone_name: str, turn: int, max_capacity: int) -> bool:
+    def is_zone_available(self,
+                          zone_name: str,
+                          turn: int,
+                          max_capacity: int) -> bool:
         """Check whether a zone has free capacity at a given turn."""
 
         return self.zone_reservations.get((zone_name, turn), 0) < max_capacity
 
-    def is_edge_available(self, name_a: str, name_b: str, turn: int, max_capacity: int) -> bool:
+    def is_edge_available(self,
+                          name_a: str,
+                          name_b: str,
+                          turn: int,
+                          max_capacity: int) -> bool:
         """Check whether a connection has free capacity at a given turn."""
 
         key = tuple(sorted([name_a, name_b]))
@@ -45,7 +53,9 @@ class Pathfinder:
         """Initialize the pathfinder with a graph."""
         self.graph: Graph = graph
 
-    def find_path(self, start_hub: Optional[Zone], end_hub: Optional[Zone]) -> list[Zone]:
+    def find_path(self,
+                  start_hub: Optional[Zone],
+                  end_hub: Optional[Zone]) -> list[Zone]:
         """Find the shortest path ignoring other drones using Dijkstra."""
 
         dist: dict[Zone, int] = {start_hub: 0}
@@ -78,9 +88,11 @@ class Pathfinder:
                     dist[neighbor] = nd
                     prev[neighbor] = zone
                     counter += 1
-                    priority_bonus = -1 if neighbor.type_zone == Type_zone.priority else 0
+                    priority_bonus = -1 if \
+                        neighbor.type_zone == Type_zone.priority else 0
 
-                    heapq.heappush(heap, (nd, priority_bonus, counter, neighbor))
+                    heapq.heappush(
+                        heap, (nd, priority_bonus, counter, neighbor))
         return []
 
     def find_path_with_reservations(
@@ -91,18 +103,21 @@ class Pathfinder:
         start_turn: int = 0,
         max_turn: int = 200
     ) -> list[tuple[Zone, int]]:
-        """Find a collision-free path using space-time Dijkstra with a reservation table."""
+        """Find a collision-free path using space-time
+                Dijkstra with a reservation table."""
 
         start_node: tuple[Zone, int] = (start_hub, start_turn)
         dist: dict[tuple[Zone, int], float] = {start_node: 0}
-        prev: dict[tuple[Zone, int], Optional[tuple[Zone, int]]] = {start_node: None}
+        prev: dict[tuple[Zone, int], Optional[tuple[Zone, int]]] = {
+            start_node: None}
         visited: set[tuple[Zone, int]] = set()
-        heap: list[tuple[float, int, int, Zone, int]] = [(0, 0, 0, start_hub, start_turn)]
+        heap: list[tuple[float, int, int, Zone, int]] = [
+            (0, 0, 0, start_hub, start_turn)]
         counter: int = 0
 
         while heap:
             d, _, _, zone, turn = heapq.heappop(heap)
-            node: tuple[Zone, int]  = (zone, turn)
+            node: tuple[Zone, int] = (zone, turn)
 
             if node in visited:
                 continue
@@ -132,13 +147,15 @@ class Pathfinder:
 
                 conn = self.graph.get_connection(zone, neighbor)
                 if conn and not table.is_edge_available(
-                        zone.name, neighbor.name, turn, conn.max_link_capacity):
+                        zone.name, neighbor.name, turn,
+                        conn.max_link_capacity):
                     continue
 
                 if neighbor != end_hub and neighbor != start_hub:
                     if neighbor.type_zone == Type_zone.restricted:
                         ok = all(
-                            table.is_zone_available(neighbor.name, t, neighbor.max_drones)
+                            table.is_zone_available(
+                                neighbor.name, t, neighbor.max_drones)
                             for t in range(turn + 1, next_turn + 1)
                         )
                     else:
@@ -154,15 +171,19 @@ class Pathfinder:
                     prev[next_node] = node
                     counter += 1
 
-                    priority_bonus = -1 if neighbor.type_zone == Type_zone.priority else 0
+                    priority_bonus = -1 \
+                        if neighbor.type_zone == Type_zone.priority else 0
 
-                    heapq.heappush(heap, (new_dist, priority_bonus, counter, neighbor, next_turn))
+                    heapq.heappush(
+                        heap, (new_dist, priority_bonus,
+                               counter, neighbor, next_turn))
 
             wait_turn = turn + 1
             if wait_turn <= max_turn:
                 can_wait = (
                     zone == start_hub or
-                    table.is_zone_available(zone.name, wait_turn, zone.max_drones)
+                    table.is_zone_available(
+                        zone.name, wait_turn, zone.max_drones)
                 )
                 if can_wait:
                     wait_node: tuple[Zone, int] = (zone, wait_turn)
@@ -171,6 +192,7 @@ class Pathfinder:
                         dist[wait_node] = wait_dist
                         prev[wait_node] = node
                         counter += 1
-                        heapq.heappush(heap, (wait_dist, 0, counter, zone, wait_turn))
+                        heapq.heappush(
+                            heap, (wait_dist, 0, counter, zone, wait_turn))
 
         return []

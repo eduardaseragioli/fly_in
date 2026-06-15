@@ -30,8 +30,8 @@ class Graph:
         if connection_will_installed.name in self.connection_dict:
             return False
         else:
-            self.connection_dict
-            [connection_will_installed.name] = connection_will_installed
+            self.connection_dict[
+                connection_will_installed.name] = connection_will_installed
             return True
 
     def get_neighbors(self, zone_neighbors: Zone) -> list[Zone]:

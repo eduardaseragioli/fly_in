@@ -1,6 +1,10 @@
 from __future__ import annotations
 from enum import Enum
 from base import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from drone import Drone
 
 
 class Type_zone(str, Enum):
@@ -11,14 +15,23 @@ class Type_zone(str, Enum):
     restricted = "restricted"
     priority = "priority"
 
-class Zone(Base):
-    """Represents a node in the airspace graph with capacity and type constraints."""
 
-    def __init__(self, name: str, coordinates: tuple[int, int], type_zone: Type_zone = Type_zone.normal, color: str = "None", max_drones: int = 1, temp_blocked: bool = False, is_end_zone: bool = False) -> None:
+class Zone(Base):
+    """Represents a node in the airspace
+            graph with capacity and type constraints."""
+
+    def __init__(self,
+                 name: str,
+                 coordinates: tuple[int, int],
+                 type_zone: Type_zone = Type_zone.normal,
+                 color: str = "None",
+                 max_drones: int = 1,
+                 temp_blocked: bool = False,
+                 is_end_zone: bool = False) -> None:
         """Initialize a zone with its properties."""
 
         self.name: str = name
-        self.coordinates: tuple[int, int]  = coordinates
+        self.coordinates: tuple[int, int] = coordinates
         self.color: str = color
         self.type_zone: Type_zone = type_zone
         self.max_drones: int = max_drones
@@ -35,13 +48,13 @@ class Zone(Base):
 
     def add_drone(self, drone_actual: Drone) -> bool:
         """Add a drone to this zone if capacity allows."""
-        
+
         if self.has_capacity() is False:
             return False
         else:
             self.drone_actual.append(drone_actual)
             return True
-        
+
     def remove_drone(self, drone_actual: Drone) -> bool:
         """Remove a drone from this zone."""
 
@@ -50,11 +63,11 @@ class Zone(Base):
         else:
             self.drone_actual.remove(drone_actual)
             return True
-        
+
     def is_blocked(self) -> bool:
         """Check whether this zone is permanently blocked."""
-        
+
         if self.type_zone == Type_zone.blocked:
-            return True 
+            return True
         else:
             return False
