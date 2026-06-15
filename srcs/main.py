@@ -4,6 +4,7 @@ import os
 from parser import Parser
 from pathfinder import Pathfinder
 from simulator import Simulator
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'srcs'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'visualizer'))
@@ -16,7 +17,7 @@ def main() -> None:
         print("Usage: python3 main.py <map_file>")
         sys.exit(1)
 
-    file_path: str = sys.argv[1]
+    file_path: Path = Path(sys.argv[1])
 
     parser: Parser = Parser(file_path)
     graph = parser.parse()

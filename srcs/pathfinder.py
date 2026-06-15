@@ -8,7 +8,7 @@ import heapq
 class ReservationTable:
     """Tracks zone and edge occupancy by turn for cooperative pathfinding."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize empty reservation tables for zones and edges."""
 
         self.zone_reservations: dict[tuple[str, int], int] = {}
@@ -29,19 +29,26 @@ class ReservationTable:
                           max_capacity: int) -> bool:
         """Check whether a connection has free capacity at a given turn."""
 
-        key = tuple(sorted([name_a, name_b]))
+        if name_a <= name_b:
+            key: tuple[str, str] = (name_a, name_b)
+        else:
+            key = (name_b, name_a)
         return self.edge_reservations.get((key, turn), 0) < max_capacity
 
-    def reserve_zone(self, zone_name: str, turn: int):
+    def reserve_zone(self, zone_name: str, turn: int) -> None:
         """Reserve one slot in a zone for a specific turn."""
 
         self.zone_reservations[(zone_name, turn)] = \
             self.zone_reservations.get((zone_name, turn), 0) + 1
 
-    def reserve_edge(self, name_a: str, name_b: str, turn: int):
+    def reserve_edge(self, name_a: str, name_b: str, turn: int) -> None:
         """Reserve one slot on an edge for a specific turn."""
 
-        key = tuple(sorted([name_a, name_b]))
+        if name_a <= name_b:
+            key: tuple[str, str] = (name_a, name_b)
+        else:
+            key = (name_b, name_a)
+
         self.edge_reservations[(key, turn)] = \
             self.edge_reservations.get((key, turn), 0) + 1
 
@@ -54,8 +61,8 @@ class Pathfinder:
         self.graph: Graph = graph
 
     def find_path(self,
-                  start_hub: Optional[Zone],
-                  end_hub: Optional[Zone]) -> list[Zone]:
+                  start_hub: Zone,
+                  end_hub: Zone) -> list[Zone]:
         """Find the shortest path ignoring other drones using Dijkstra."""
 
         dist: dict[Zone, int] = {start_hub: 0}
@@ -97,8 +104,8 @@ class Pathfinder:
 
     def find_path_with_reservations(
         self,
-        start_hub: Optional[Zone],
-        end_hub: Optional[Zone],
+        start_hub: Zone,
+        end_hub: Zone,
         table: ReservationTable,
         start_turn: int = 0,
         max_turn: int = 200

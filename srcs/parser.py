@@ -176,11 +176,15 @@ class Parser:
                             f"Line {line_number}: Connection"
                             "references unknown zone")
 
-                    connection_key = tuple(sorted((zona_a, zona_b)))
+                    if zona_a <= zona_b:
+                        connection_key: tuple[str, str] = (zona_a, zona_b)
+                    else:
+                        connection_key = (zona_b, zona_a)
+
                     if connection_key in connection_names:
                         raise ValueError(
                             f"Line {line_number}: Duplicate"
-                            + "connections: {zona_a}-{zona_b}")
+                            f"connections: {zona_a}-{zona_b}")
                     connection_names.add(connection_key)
 
                     name = "-".join([zona_a, zona_b])

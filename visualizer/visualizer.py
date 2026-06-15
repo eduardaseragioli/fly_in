@@ -1,6 +1,7 @@
 from graph import Graph
 from zones import Zone, Type_zone
 import pygame
+from pygame.surface import Surface
 import os
 
 
@@ -15,7 +16,7 @@ class Visualizer:
 
         self.height: int = 1000
         self.width: int = 1000
-        self.screen: pygame.Surface | None = None
+        self.screen: Surface | None = None
         self.fly_in_status: bool = False
         self.current_turn: int = 0
         self.CORES: dict[str, tuple[int, int, int]] = {
@@ -32,11 +33,15 @@ class Visualizer:
             "pink": (255, 192, 203)
         }
 
+    @property
+    def screen_surf(self) -> Surface:
+        assert self.screen is not None
+        return self.screen
+
     def start_pygame(self) -> None:
         """Initialize pygame, create the window, and load all image assets."""
 
         pygame.init()
-
         self.screen = pygame.display.set_mode((self.height, self.width))
         pygame.display.set_caption("Fly_in")
 
@@ -60,7 +65,8 @@ class Visualizer:
         self.drone_img = pygame.transform.scale(raw_drone, (80, 80))
 
     def limits_graph(self, ) -> None:
-        """Compute the bounding box of all zone coordinates for coordinate conversion."""
+        """Compute the bounding box of all zone
+                coordinates for coordinate conversion."""
 
         self.all_x: list[float] = []
         self.all_y: list[float] = []
@@ -75,7 +81,8 @@ class Visualizer:
         self.max_y = max(self.all_y)
 
     def _compute_margin(self) -> int:
-        """Compute an appropriate margin based on the map coordinate spread."""
+        """Compute an appropriate margin based
+                on the map coordinate spread."""
 
         x_spread = self.max_x - self.min_x
         y_spread = self.max_y - self.min_y
@@ -92,8 +99,11 @@ class Visualizer:
             margin = int((available - spread * space_per_unit) / 2)
             return max(50, min(450, margin))
 
-    def _convert_coordinates(self, value_x: float, value_y: float) -> tuple[float, float]:
-        """Convert map grid coordinates to pygame screen pixel coordinates."""
+    def _convert_coordinates(self,
+                             value_x: float,
+                             value_y: float) -> tuple[float, float]:
+        """Convert map grid coordinates to
+                pygame screen pixel coordinates."""
 
         self.margin = self._compute_margin()
         range_x = self.max_x - self.min_x
@@ -106,7 +116,7 @@ class Visualizer:
             range_x * (self.width - 2 * self.margin)
 
         if range_y == 0:
-            pixel_y = self.height // 2
+            pixel_y = self.height / 2
         else:
             pixel_y_inverted = self.margin + \
                 (value_y - self.min_y) / range_y * \
@@ -138,7 +148,8 @@ class Visualizer:
         return (200, 200, 200)
 
     def _parse_history(self) -> dict[int, dict[str, str]]:
-        """Parse the simulation history into a turn-indexed drone position map."""
+        """Parse the simulation history into
+                a turn-indexed drone position map."""
 
         turns: dict[int, dict[str, str]] = {}
 
@@ -149,7 +160,8 @@ class Visualizer:
                 all_drones_ids.add(parts[0])
 
         turns[0] = {
-            drone_id: self.graph.start_zone.name for drone_id in all_drones_ids}
+            drone_id: self.graph.start_zone.name
+            for drone_id in all_drones_ids}
 
         for turn_idx, line in enumerate(self.history):
             turns[turn_idx + 1] = dict(turns[turn_idx])
@@ -176,24 +188,26 @@ class Visualizer:
         padding: int = 8
 
         for label, color in legend_items:
-            pygame.draw.rect(self.screen, color,
+            pygame.draw.rect(self.screen_surf, color,
                              (x, y, square_size, square_size))
             text = font.render(label, True, (50, 50, 50))
-            self.screen.blit(text, (x + square_size + 6, y))
+            self.screen_surf.blit(text, (x + square_size + 6, y))
             y += square_size + padding
         return y
 
-    def rotate_pygame(self):
-        """Run the main pygame loop, rendering the graph and animating drones."""
+    def rotate_pygame(self) -> None:
+        """Run the main pygame loop, rendering
+                the graph and animating drones."""
 
         self.start_pygame()
+
         self.limits_graph()
         clock: pygame.time.Clock = pygame.time.Clock()
         drone_positions: dict[int, dict[str, str]] = self._parse_history()
         mode: str = "paused"
 
         while self.fly_in_status:
-            self.screen.blit(self.background, (0, 0))
+            self.screen_surf.blit(self.background, (0, 0))
 
             for connection in self.graph.connection_dict.values():
                 zone_a = connection.zone_a
@@ -206,7 +220,7 @@ class Visualizer:
 
                 line_color = (225, 165, 0)
 
-                pygame.draw.line(self.screen, line_color,
+                pygame.draw.line(self.screen_surf, line_color,
                                  pixel_start, pixel_end, 2)
 
             for zone in self.graph.zone_dict.values():
@@ -216,31 +230,44 @@ class Visualizer:
 
                 if zone == self.graph.start_zone:
                     rect = self.start_img.get_rect(
-                        center=(int(pixel_position[0]), int(pixel_position[1])))
-                    self.screen.blit(self.start_img, rect)
+                        center=(int(pixel_position[0]),
+                                int(pixel_position[1])))
+                    self.screen_surf.blit(self.start_img, rect)
 
                 elif zone == self.graph.end_zone:
                     rect = self.end_img.get_rect(
-                        center=(int(pixel_position[0]), int(pixel_position[1])))
-                    self.screen.blit(self.end_img, rect)
+                        center=(int(pixel_position[0]),
+                                int(pixel_position[1])))
+                    self.screen_surf.blit(self.end_img, rect)
 
                 else:
                     zone_color = self._color_zone(zone)
-                    pygame.draw.circle(self.screen, zone_color,
+                    pygame.draw.circle(self.screen_surf, zone_color,
                                        pixel_position, zone_radius)
 
             if self.current_turn < len(drone_positions):
                 font = pygame.font.SysFont("Arial", 15)
-                for drone_id, zone_name in drone_positions[self.current_turn].items():
-                    zone = self.graph.zone_dict.get(zone_name)
-                    if zone:
-                        pixel_position = self._convert_coordinates(
-                            zone.coordinates[0], zone.coordinates[1])
-                        self.screen.blit(self.drone_img, (pixel_position[0] - self.drone_img.get_width(
-                        ) // 2, pixel_position[1] - self.drone_img.get_height() // 2))
-                        text = font.render(drone_id, True, (0, 0, 0))
-                        self.screen.blit(text, (pixel_position[0] - text.get_width(
-                        ) // 2, pixel_position[1] + self.drone_img.get_height() // 2))
+                for drone_id, zone_name in \
+                        drone_positions[self.current_turn].items():
+                    zone_opt = self.graph.zone_dict.get(zone_name)
+
+                    if zone_opt is None:
+                        continue
+
+                    pixel_position = self._convert_coordinates(
+                        zone_opt.coordinates[0], zone_opt.coordinates[1])
+                    self.screen_surf.blit(
+                        self.drone_img,
+                        (pixel_position[0] - self.drone_img.get_width()
+                            // 2,
+                            pixel_position[1] - self.drone_img.get_height()
+                            // 2)
+                    )
+                    text = font.render(drone_id, True, (0, 0, 0))
+                    self.screen_surf.blit(text, (
+                        pixel_position[0] - text.get_width()
+                        // 2, pixel_position[1] +
+                        self.drone_img.get_height() // 2))
 
             font_mode = pygame.font.SysFont("Arial", 16)
             if mode == "paused":
@@ -269,7 +296,7 @@ class Visualizer:
 
             for line in msg:
                 text_mode = font_mode.render(line, True, (50, 50, 50))
-                self.screen.blit(text_mode, (x_mode, y_mode))
+                self.screen_surf.blit(text_mode, (x_mode, y_mode))
                 y_mode += line_spacing
 
             advance_one: bool = False
