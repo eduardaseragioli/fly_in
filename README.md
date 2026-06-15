@@ -99,34 +99,74 @@ connection: waypoint2-goal
 
 ### Visualizer controls
 
-<!-- Explica os controlos do pygame:
-- SPACE: iniciar/pausar
-- M: modo manual
-- A: modo automático
-- R: reiniciar
--->
+### Visualizer controls
+
+After the simulation completes, a pygame window opens automatically displaying
+the airspace graph and the drone movements turn by turn.
+
+| Key | Action |
+|-----|--------|
+| `SPACE` | Start or pause automatic playback |
+| `M` | Switch to manual mode — advances one turn per key press |
+| `A` | Switch to automatic continuous playback |
+
+Zone colors displayed in the visualizer:
+
+| Color | Zone type |
+|-------|-----------|
+| 🟢 Green | Normal zone |
+| 🔴 Red | Blocked zone |
+| 🔵 Dark blue | Restricted zone |
+| 🟡 Yellow | Priority zone |
 
 ## Algorithmic choices
 
-<!-- Explica as tuas escolhas:
-- Porquê Dijkstra (simplicidade, optimalidade em grafos com pesos)
-- Porquê Reservation Table (evitar colisões entre drones cooperativamente)
-- Como funciona o space-time Dijkstra
-- Resultados nos mapas (turnos obtidos vs targets)
--->
+### Dijkstra
+
+Dijkstra's algorithm was chosen as the base pathfinding algorithm because it guarantees the shortest path in a weighted graph and is straightforward to extend into space-time. 
+
+Priority zones are preferred during pathfinding using a tiebreaker: when two paths have equal cost, the one passing through priority zones is chosen first.
+
+### Cooperative Pathfinding with Reservation Table
+
+With multiple drones navigating simultaneously, a single Dijkstra run per drone would cause collisions. The Reservation Table solves this by extending Dijkstra into space-time: each node in the search is a `(zone, turn)` pair instead of
+just a zone.
+
+Each drone plans its route sequentially. After a path is computed, all `(zone, turn)` pairs along that path are reserved. The next drone's search avoids any reserved `(zone, turn)` pairs, naturally finding a collision-free route even if it means waiting or taking a detour.
+
+Drones may also wait in their current zone if all neighbors are reserved at the next turn, which is handled by adding a `(zone, turn + 1)` wait node to the search.
+
+### Results
+
+| Map | Target | Achieved |
+|-----|--------|----------|
+| Easy 01 — Linear path | ≤ 6 turns | 4 turns ✅ |
+| Easy 02 — Simple fork | ≤ 8 turns | 6 turns ✅ |
+| Easy 03 — Basic capacity | ≤ 8 turns | 6 turns ✅ |
+| Medium 01 — Dead end trap | ≤ 12 turns | 8 turns ✅ |
+| Medium 02 — Circular loop | ≤ 15 turns | 15 turns ✅ |
+| Medium 03 — Priority puzzle | ≤ 12 turns | 8 turns ✅ |
+| Hard 01 — Maze nightmare | ≤ 20 turns | 13 turns ✅ |
+| Hard 02 — Capacity hell | ≤ 25 turns | 16 turns ✅ |
+| Hard 03 — Ultimate challenge | ≤ 35 turns | 26 turns ✅ |
+| Challenger — The impossible dream | ≤ 45 turns | 43 turns ✅ |
+
+---
 
 ## Resources
+- pygame documentation: https://www.pygame.org/docs/
+- Python `heapq` documentation: https://docs.python.org/3library/heapq.html
+- Python `abc` documentation: https://docs.python.org/3/library/abc.html
 
 ### References
 
-<!-- Lista as referências que usaste:
-- Artigos, documentação, livros
--->
+- Dijkstra, E. W. (1959). *A note on two problems in connexion with graphs*. Numerische Mathematik, 1(1), 269–271.
+- Silver, D. (2005). *Cooperative Pathfinding*. AAAI Workshop on Abstraction, Reformulation and Approximation.
+- PyGame do Python – Como Criar Jogos no Python: https://www.hashtagtreinamentos.com/pygame-python
+
 
 ### AI usage
 
-<!-- OBRIGATÓRIO pelo subject — explica honestamente:
-- Que ferramentas de AI usaste (ex: Claude)
-- Em que partes do projeto usaste (debugging, algoritmos, visualização, docstrings...)
-- Como verificaste e adaptaste o código gerado
--->
+- **Debugging** — identifying and fixing logic errors in the simulator,
+- **Visualizer** — help structuring the pygame loop, coordinate conversion, and drone animation
+- **Docstrings and type hints** — Assistance in creating docstrings and adding type hints.

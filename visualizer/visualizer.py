@@ -69,6 +69,8 @@ class Visualizer:
         self.max_y = max(self.all_y)
 
     def _compute_margin(self) -> int:
+        """Compute an appropriate margin based on the map coordinate spread."""
+
         x_spread = self.max_x - self.min_x
         y_spread = self.max_y - self.min_y
         spread = max(x_spread, y_spread)
@@ -251,8 +253,6 @@ class Visualizer:
                 text_mode = font_mode.render(line, True, (50, 50, 50))
                 self.screen.blit(text_mode, (x_mode, y_mode))
                 y_mode += line_spacing
-
-            self._draw_legend()
 
             advance_one: bool = False
             for event in pygame.event.get():

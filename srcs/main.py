@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'visualizer'))
 from parser import Parser
 from pathfinder import Pathfinder
 from simulator import Simulator
-from visualizer import Visualizer
 
 def main() -> None:
     """Entry point for the fly_in drone routing simulation."""
@@ -29,8 +28,12 @@ def main() -> None:
     simulator.run_simulator()
     simulator.print_output()
 
-    visualizer: Visualizer = Visualizer(graph, simulator.history)
-    visualizer.rotate_pygame()
+    try:
+        from visualizer import Visualizer
+        visualizer: Visualizer = Visualizer(graph, simulator.history)
+        visualizer.rotate_pygame()
+    except Exception:
+        pass
 
 
 

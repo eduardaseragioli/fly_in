@@ -24,7 +24,7 @@ class Zone(Base):
         self.max_drones: int = max_drones
         self.drone_actual: list[Drone] = []
         self.temp_blocked: bool = temp_blocked
-        self.is_end_zone = is_end_zone
+        self.is_end_zone: bool = is_end_zone
 
     def has_capacity(self) -> bool:
         """Check whether this zone can accept more drones."""
