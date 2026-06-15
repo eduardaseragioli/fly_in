@@ -1,14 +1,13 @@
 from __future__ import annotations
 import sys
 import os
+from parser import Parser
+from pathfinder import Pathfinder
+from simulator import Simulator
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'srcs'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'visualizer'))
 
-
-from parser import Parser
-from pathfinder import Pathfinder
-from simulator import Simulator
 
 def main() -> None:
     """Entry point for the fly_in drone routing simulation."""
@@ -34,7 +33,6 @@ def main() -> None:
         visualizer.rotate_pygame()
     except Exception:
         pass
-
 
 
 if __name__ == "__main__":

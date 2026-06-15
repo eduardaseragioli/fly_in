@@ -57,12 +57,13 @@ class Parser:
                     max_link_capacity = int(value)
 
                     if max_link_capacity <= 0:
-                        raise ValueError("max_link_capacity must be greater than 0")
+                        raise ValueError(
+                            "max_link_capacity must be greater than 0")
         return max_link_capacity
 
-
     def parse(self) -> Graph:
-        """Parse the map file and construct a Graph with zones and connections."""
+        """Parse the map file and construct a Graph
+            with zones and connections."""
 
         start_zone: Optional[Zone] = None
         end_zone: Optional[Zone] = None
@@ -70,7 +71,7 @@ class Parser:
         connection: list[Connection] = []
         zone_names: set[str] = set()
         connection_names: set[tuple[str, str]] = set()
-        
+
         with open(self.file_path, 'r') as file:
             for line_number, line in enumerate(file, start=1):
                 line = line.strip()
@@ -83,20 +84,27 @@ class Parser:
                     try:
                         self.nb_drones = int(value_drone)
                     except ValueError:
-                        raise ValueError(f"Line {line_number}: The {value_drone} is not a int")
+                        raise ValueError(
+                            f"Line {line_number}:"
+                            + "The {value_drone} is not a int")
 
                     if self.nb_drones <= 0:
-                        raise ValueError(f"Line {line_number}: nb_drones must be greater than 0")
+                        raise ValueError(
+                            f"Line {line_number}: nb_drones"
+                            "must be greater than 0")
 
                 elif line.startswith('start_hub'):
                     parts_start_hub = line.split()
                     name = parts_start_hub[1]
 
                     if "-" in name:
-                        raise ValueError(f"Line {line_number}: Zone names can't contain '-'")
+                        raise ValueError(
+                            f"Line {line_number}: Zone"
+                            "names can't contain '-'")
 
                     if name in zone_names:
-                        raise ValueError(f"Line {line_number}: Duplicate zone name: {name}")
+                        raise ValueError(
+                            f"Line {line_number}: Duplicate zone name: {name}")
                     zone_names.add(name)
 
                     x = int(parts_start_hub[2])
@@ -113,11 +121,13 @@ class Parser:
                     name = parts_end_hub[1]
 
                     if "-" in name:
-                        raise ValueError(f"Line {line_number}: Zone names can't contain '-'")
-
+                        raise ValueError(
+                            f"Line {line_number}:"
+                            "Zone names can't contain '-'")
 
                     if name in zone_names:
-                        raise ValueError(f"Line {line_number}: Duplicate zone name: {name}")
+                        raise ValueError(
+                            f"Line {line_number}: Duplicate zone name: {name}")
                     zone_names.add(name)
 
                     x = int(parts_end_hub[2])
@@ -134,11 +144,13 @@ class Parser:
                     name = parts_hub[1]
 
                     if "-" in name:
-                        raise ValueError(f"Line {line_number}: Zone names can't contain '-'")
-
+                        raise ValueError(
+                            f"Line {line_number}: Zone"
+                            "names can't contain '-'")
 
                     if name in zone_names:
-                        raise ValueError(f"Line {line_number}: Duplicate zone name: {name}")
+                        raise ValueError(
+                            f"Line {line_number}: Duplicate zone name: {name}")
                     zone_names.add(name)
 
                     x = int(parts_hub[2])
@@ -160,18 +172,23 @@ class Parser:
                     zone_b = next((z for z in zones if z.name == zona_b), None)
 
                     if zone_a is None or zone_b is None:
-                        raise ValueError(f"Line {line_number}: Connection references unknown zone")
+                        raise ValueError(
+                            f"Line {line_number}: Connection"
+                            "references unknown zone")
 
                     connection_key = tuple(sorted((zona_a, zona_b)))
                     if connection_key in connection_names:
-                        raise ValueError(f"Line {line_number}: Duplicate connections: {zona_a}-{zona_b}")
+                        raise ValueError(
+                            f"Line {line_number}: Duplicate"
+                            + "connections: {zona_a}-{zona_b}")
                     connection_names.add(connection_key)
 
                     name = "-".join([zona_a, zona_b])
 
                     max_link_capacity = self._parse_connection_metadata(line)
 
-                    creat_connection = Connection(name, zone_a, zone_b, max_link_capacity)
+                    creat_connection = Connection(
+                        name, zone_a, zone_b, max_link_capacity)
                     connection.append(creat_connection)
 
         if self.nb_drones == 0:
