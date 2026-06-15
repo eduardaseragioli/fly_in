@@ -1,13 +1,23 @@
 from __future__ import annotations
 from zones import Zone
 from base import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from drone import Drone
 
 
 class Connection(Base):
-    """Represents a directional link between two zones with capacity constraints."""
+    """Represents a directional link between two zones
+        with capacity constraints."""
 
-    def __init__(self, name: str, zone_a: Zone, zone_b: Zone, max_link_capacity: int = 1) -> None:
+    def __init__(self,
+                 name: str,
+                 zone_a: Zone,
+                 zone_b: Zone,
+                 max_link_capacity: int = 1) -> None:
         """Initialize a connection between two zones"""
+
         self.name: str = name
         self.zone_a: Zone = zone_a
         self.zone_b: Zone = zone_b
@@ -37,4 +47,3 @@ class Connection(Base):
         else:
             self.drone_transit.remove(drone_actual)
             return True
-            
