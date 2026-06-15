@@ -1,7 +1,10 @@
 from __future__ import annotations
 from zones import Zone
 from enum import Enum
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from connections import Connection
 
 
 class Status(Enum):
@@ -13,11 +16,12 @@ class Status(Enum):
 
 
 class Drone:
-    """Represents a drone navigating through the graph from start to destination."""
+    """Represents a drone navigating through the
+        graph from start to destination."""
 
     def __init__(self, id_drone: str, current_zone: Zone,
-                 destination_zone: Zone, current_connection: Optional[Connection] =None) -> None:
-
+                 destination_zone: Zone,
+                 current_connection: Optional[Connection] = None) -> None:
         """Initialize a drone with its starting position and destination."""
         self.id_drone: str = id_drone
         self.current_zone: Zone = current_zone
@@ -36,26 +40,28 @@ class Drone:
 
         if not destination_zone.has_capacity():
             return False
-        
+
         self.current_zone.remove_drone(self)
         self.current_zone = destination_zone
-        
+
         if self.planned_route:
             self.planned_route.pop(0)
-        
+
         if self.destination_zone == destination_zone:
             self.status = Status.arrived
 
         else:
             destination_zone.add_drone(self)
             self.status = Status.in_motion
-        
+
         return True
 
-    def start_transit_restricted(self, destination_zone: Zone, turno_current: int, connection: Connection) -> bool:
-        """Begin a two-turn transit through a restricted zone via a connection."""
-        
-        from connections import Connection
+    def start_transit_restricted(self, destination_zone: Zone,
+                                 turno_current: int,
+                                 connection: Connection) -> bool:
+        """Begin a two-turn transit through a restricted
+                zone via a connection."""
+
         capacity = connection.has_capacity()
         if capacity is False:
             return False

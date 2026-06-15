@@ -30,7 +30,8 @@ class Graph:
         if connection_will_installed.name in self.connection_dict:
             return False
         else:
-            self.connection_dict[connection_will_installed.name] = connection_will_installed
+            self.connection_dict
+            [connection_will_installed.name] = connection_will_installed
             return True
 
     def get_neighbors(self, zone_neighbors: Zone) -> list[Zone]:
@@ -40,7 +41,8 @@ class Graph:
 
         for connection in self.connection_dict.values():
             if zone_neighbors == connection.zone_a:
-                if connection.zone_b.is_blocked() or connection.zone_b.temp_blocked:
+                if connection.zone_b.is_blocked() \
+                        or connection.zone_b.temp_blocked:
                     pass
                 elif connection.temp_blocked is True:
                     pass
@@ -48,7 +50,8 @@ class Graph:
                     zone_list.append(connection.zone_b)
 
             elif zone_neighbors == connection.zone_b:
-                if connection.zone_a.is_blocked() or connection.zone_a.temp_blocked:
+                if connection.zone_a.is_blocked() \
+                        or connection.zone_a.temp_blocked:
                     pass
                 elif connection.temp_blocked is True:
                     pass
@@ -56,19 +59,21 @@ class Graph:
                     zone_list.append(connection.zone_a)
         return zone_list
 
-    def get_connection(self, zone_a: Zone, zone_b: Zone) -> Optional[Connection]:
+    def get_connection(self,
+                       zone_a: Zone,
+                       zone_b: Zone) -> Optional[Connection]:
         """Find the connection between two zones regardless of direction."""
-        
+
         if zone_a is None or zone_b is None:
             return None
-        
+
         for connection in self.connection_dict.values():
             zone_a_name = zone_a.name if zone_a else None
             zone_b_name = zone_b.name if zone_b else None
-            
+
             if zone_a_name is None or zone_b_name is None:
                 continue
-            
+
             if ((connection.zone_a.name == zone_a_name and
                  connection.zone_b.name == zone_b_name) or
                 (connection.zone_a.name == zone_b_name and
