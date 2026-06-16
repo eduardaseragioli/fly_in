@@ -33,6 +33,26 @@ class Visualizer:
             "pink": (255, 192, 203)
         }
 
+        self.color_map: dict[str, tuple[int, int, int]] = {
+            "green":   (34, 177,  76),
+            "blue":    (52,  131, 235),
+            "red":     (234,  83,  39),
+            "yellow":  (255, 220,  50),
+            "orange":  (255, 140,   0),
+            "purple":  (150,  60, 200),
+            "black":   (20,   20,  20),
+            "brown":   (120,  72,  40),
+            "maroon":  (128,   0,   0),
+            "gold":    (212, 175,  55),
+            "darkred": (139,   0,   0),
+            "violet":  (180,  80, 220),
+            "crimson": (220,  20,  60),
+            "cyan":    (0,   200, 200),
+            "lime":    (160, 220,  40),
+            "magenta": (220,  40, 180),
+            "rainbow": (255, 255, 255),
+        }
+
     @property
     def screen_surf(self) -> Surface:
         assert self.screen is not None
@@ -134,6 +154,11 @@ class Visualizer:
         elif zone == self.graph.end_zone:
             return self.CORES["normal"]
 
+        if zone.color and zone.color != "None":
+            from_map = self.color_map.get(zone.color.lower())
+            if from_map is not None:
+                return from_map
+
         elif zone.type_zone == Type_zone.normal:
             return self.CORES["normal"]
 
@@ -181,6 +206,15 @@ class Visualizer:
             ("Restricted zone", self.CORES["restricted"]),
             ("Priority zone", self.CORES["priority"]),
         ]
+
+        has_map_colors = any(
+            zone.color and zone.color != "None"
+            for zone in self.graph.zone_dict.values()
+            if zone != self.graph.start_zone and zone != self.graph.end_zone
+        )
+        if has_map_colors:
+            return 20
+
         font = pygame.font.SysFont("Arial", 16)
         x: int = self.width - 200
         y: int = 20

@@ -96,8 +96,16 @@ connection: start-waypoint1
 connection: waypoint1-waypoint2
 connection: waypoint2-goal
 ```
+### Example output
 
-### Visualizer controls
+```
+D1-waypoint1
+D1-waypoint2 D2-waypoint1
+D1-goal D2-waypoint2
+D2-goal
+Total turns: 4
+```
+
 
 ### Visualizer controls
 
@@ -142,20 +150,20 @@ Drones may also wait in their current zone if all neighbors are reserved at the 
 |-----|--------|----------|
 | Easy 01 — Linear path | ≤ 6 turns | 4 turns ✅ |
 | Easy 02 — Simple fork | ≤ 8 turns | 6 turns ✅ |
-| Easy 03 — Basic capacity | ≤ 8 turns | 6 turns ✅ |
+| Easy 03 — Basic capacity | ≤ 6 turns | 6 turns ✅ |
 | Medium 01 — Dead end trap | ≤ 12 turns | 8 turns ✅ |
 | Medium 02 — Circular loop | ≤ 15 turns | 15 turns ✅ |
 | Medium 03 — Priority puzzle | ≤ 12 turns | 8 turns ✅ |
-| Hard 01 — Maze nightmare | ≤ 20 turns | 13 turns ✅ |
-| Hard 02 — Capacity hell | ≤ 25 turns | 16 turns ✅ |
-| Hard 03 — Ultimate challenge | ≤ 35 turns | 26 turns ✅ |
+| Hard 01 — Maze nightmare | ≤ 30 turns | 13 turns ✅ |
+| Hard 02 — Capacity hell | ≤ 35 turns | 16 turns ✅ |
+| Hard 03 — Ultimate challenge | ≤ 45 turns | 26 turns ✅ |
 | Challenger — The impossible dream | ≤ 45 turns | 43 turns ✅ |
 
 ---
 
 ## Resources
 - pygame documentation: https://www.pygame.org/docs/
-- Python `heapq` documentation: https://docs.python.org/3library/heapq.html
+- Python `heapq` documentation: https://docs.python.org/3/library/heapq.html
 - Python `abc` documentation: https://docs.python.org/3/library/abc.html
 
 ### References

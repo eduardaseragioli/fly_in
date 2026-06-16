@@ -79,6 +79,11 @@ class Parser:
                     continue
 
                 if line.startswith('nb_drones: '):
+                    if self.nb_drones != 0:
+                        raise ValueError(
+                            f"Line {line_number}: Duplicate"
+                            "nb_drones definition")
+
                     nb_drones_split = line.split(":")
                     value_drone = nb_drones_split[1].strip()
                     try:
@@ -86,7 +91,7 @@ class Parser:
                     except ValueError:
                         raise ValueError(
                             f"Line {line_number}:"
-                            + "The {value_drone} is not a int")
+                            + "The value_drone is not an int")
 
                     if self.nb_drones <= 0:
                         raise ValueError(
