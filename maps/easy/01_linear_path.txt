@@ -1,11 +1,83 @@
-# Easy Level 1: Simple linear path
-nb_drones: 2
+# Easy Level 1: #Simple linear path
+#nb_drones: 2#
+#
+#start_hub: star#t 0 0 [color=green]
+#hub: waypoint1 #1 0 [color=blue ]
+#hub: waypoint2 #2 0 [color=blue]
+#end_hub: goal 3# 0 [color=red]
 
-start_hub: start 0 0 [color=green]
-hub: waypoint1 1 0 [color=blue]
-hub: waypoint2 2 0 [color=blue]
-end_hub: goal 3 0 [color=red]
+#connection: start-waypoint1
+#connection: waypoint1-waypoint2
+#connection: waypoint2-goal
 
-connection: start-waypoint1
-connection: waypoint1-waypoint2
-connection: waypoint2-goal
+
+#test connection
+#
+#nb_drones: 2
+#start_hub: start 0 0 [max_drones=2]
+#hub: middle 1 0 [max_drones=2]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-middle
+#connection: middle-goal
+#
+#nb_drones: 2
+#start_hub: start 0 0 [max_drones=2]
+#hub: middle 1 0 [max_drones=2]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-middle [max_link_capacity=2]
+#connection: middle-goal [max_link_capacity=2]
+
+#Simple test
+#nb_drones: 1
+#start_hub: start 0 0 [max_drones=2]
+#hub: middle 1 0 [max_drones=2]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-middle
+#connection: middle-goal
+
+#nb_drones: 2
+#start_hub: start 0 0 [max_drones=2]
+#hub: waypoint1 1 0 [max_drones=1]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-waypoint1
+#connection: waypoint1-goal
+
+#conflit resolution
+#nb_drones: 3
+#start_hub: start 0 0 [max_drones=3]
+#hub: bottleneck 1 0 [max_drones=1]
+#end_hub: goal 2 0 [max_drones=3]
+#connection: start-bottleneck
+#connection: bottleneck-goal
+
+
+#nb_drones: 2
+#
+#start_hub: star#t 0 0 [color=green]
+#hub: waypoint1 #1 0 [color=blue ]
+#hub: waypoint2 #2 0 [color=blue]
+#
+#nb_drones: 2
+#start_hub: start 0 0 [max_drones=2]
+#hub: middle 1 0 [max_drones=2]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-middle
+
+#nb_drones: 2
+#start_hub: start 0 0 [max_drones=2]
+#hub: middle 1 0 [max_drones=2]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-middle [max_link_capacity=2]
+
+#nb_drones: 1
+#start_hub: start 0 0 [max_drones=2]
+#hub: middle 1 0 [max_drones=2]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-middle
+
+#nb_drones: 2
+#start_hub: start 0 0 [max_drones=2]
+#hub: waypoint1 1 0 [max_drones=1]
+#end_hub: goal 2 0 [max_drones=2]
+#connection: start-waypoint1
+

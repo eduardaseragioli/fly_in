@@ -27,7 +27,14 @@ class Parser:
             for pair in metadata.split():
                 key, value = pair.split('=')
                 if key == "zone":
-                    type_zone = Type_zone(value)
+                    try:
+                        type_zone = Type_zone(value)
+                    except ValueError:
+                        raise ValueError(
+                            f"Invalid zone type: '{value}'. "
+                            f"Valid types: normal, blocked,"
+                            "restricted, priority"
+                        )
                 elif key == "color":
                     color = value
                 elif key == "max_drones":
@@ -78,7 +85,13 @@ class Parser:
                 if line.startswith('#') or not line:
                     continue
 
-                if line.startswith('nb_drones: '):
+                if line.startswith('nb_drones'):
+                    if not line.startswith('nb_drones: '):
+                        raise ValueError(
+                            f"Line {line_number}: Invalid nb_drones format. "
+                            f"Expected 'nb_drones: <number>', got '{line}'"
+                        )
+
                     if self.nb_drones != 0:
                         raise ValueError(
                             f"Line {line_number}: Duplicate"
@@ -116,7 +129,12 @@ class Parser:
                     y = int(parts_start_hub[3])
                     coordinates = x, y
 
-                    type_zone, color, max_drones = self._parse_metadata(line)
+                    try:
+                        type_zone, color, max_drones = self._parse_metadata(
+                            line)
+                    except ValueError as e:
+                        raise ValueError(f"Line {line_number}: {e}") from None
+
                     start_zone = Zone(name, coordinates,
                                       type_zone, color, max_drones)
                     zones.append(start_zone)
@@ -139,7 +157,11 @@ class Parser:
                     y = int(parts_end_hub[3])
                     coordinates = x, y
 
-                    type_zone, color, max_drones = self._parse_metadata(line)
+                    try:
+                        type_zone, color, max_drones = self._parse_metadata(
+                            line)
+                    except ValueError as e:
+                        raise ValueError(f"Line {line_number}: {e}") from None
                     end_zone = Zone(name, coordinates,
                                     type_zone, color, max_drones)
                     zones.append(end_zone)
@@ -162,7 +184,11 @@ class Parser:
                     y = int(parts_hub[3])
                     coordinates = x, y
 
-                    type_zone, color, max_drones = self._parse_metadata(line)
+                    try:
+                        type_zone, color, max_drones = self._parse_metadata(
+                            line)
+                    except ValueError as e:
+                        raise ValueError(f"Line {line_number}: {e}") from None
                     hub_zone = Zone(name, coordinates,
                                     type_zone, color, max_drones)
                     zones.append(hub_zone)
@@ -194,7 +220,11 @@ class Parser:
 
                     name = "-".join([zona_a, zona_b])
 
-                    max_link_capacity = self._parse_connection_metadata(line)
+                    try:
+                        max_link_capacity = self._parse_connection_metadata(
+                            line)
+                    except ValueError as e:
+                        raise ValueError(f"Line {line_number}: {e}") from None
 
                     creat_connection = Connection(
                         name, zone_a, zone_b, max_link_capacity)

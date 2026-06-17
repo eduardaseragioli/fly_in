@@ -149,11 +149,11 @@ Drones may also wait in their current zone if all neighbors are reserved at the 
 | Map | Target | Achieved |
 |-----|--------|----------|
 | Easy 01 — Linear path | ≤ 6 turns | 4 turns ✅ |
-| Easy 02 — Simple fork | ≤ 8 turns | 6 turns ✅ |
-| Easy 03 — Basic capacity | ≤ 6 turns | 6 turns ✅ |
+| Easy 02 — Simple fork | ≤ 8 turns | 4 turns ✅ |
+| Easy 03 — Basic capacity | ≤ 6 turns | 4 turns ✅ |
 | Medium 01 — Dead end trap | ≤ 12 turns | 8 turns ✅ |
-| Medium 02 — Circular loop | ≤ 15 turns | 15 turns ✅ |
-| Medium 03 — Priority puzzle | ≤ 12 turns | 8 turns ✅ |
+| Medium 02 — Circular loop | ≤ 15 turns | 7 turns ✅ |
+| Medium 03 — Priority puzzle | ≤ 12 turns | 7 turns ✅ |
 | Hard 01 — Maze nightmare | ≤ 30 turns | 13 turns ✅ |
 | Hard 02 — Capacity hell | ≤ 35 turns | 16 turns ✅ |
 | Hard 03 — Ultimate challenge | ≤ 45 turns | 26 turns ✅ |

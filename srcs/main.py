@@ -13,9 +13,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'visualizer'))
 def main() -> None:
     """Entry point for the fly_in drone routing simulation."""
 
+    # capacity_info: bool = "--capacity-info" in sys.argv
+
     if len(sys.argv) != 2:
         print("Usage: python3 main.py <map_file>")
         sys.exit(1)
+
+    # args = [arg for arg in sys.argv[1:] if arg != "--capacity-info"]
 
     file_path: Path = Path(sys.argv[1])
 
