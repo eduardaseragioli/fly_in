@@ -54,6 +54,7 @@ class Drone:
             destination_zone.add_drone(self)
             self.status = Status.in_motion
 
+        self.time_in_zone = 0
         return True
 
     def start_transit_restricted(self, destination_zone: Zone,

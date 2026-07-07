@@ -8,11 +8,12 @@ import os
 class Visualizer:
     """Renders the airspace graph and animates drone movements using pygame."""
 
-    def __init__(self, graph: Graph, history: list[str]) -> None:
+    def __init__(self, graph: Graph, history: list[str], total_turns: int) -> None:
         """Initialize the visualizer with the graph and simulation history."""
 
         self.graph: Graph = graph
         self.history: list[str] = history
+        self.total_turns = total_turns
 
         self.height: int = 1000
         self.width: int = 1000
@@ -181,6 +182,8 @@ class Visualizer:
         all_drones_ids: set[str] = set()
         for line in self.history:
             for movement in line.split(" "):
+                if not movement:
+                    continue
                 parts = movement.split("-")
                 all_drones_ids.add(parts[0])
 
@@ -188,13 +191,24 @@ class Visualizer:
             drone_id: self.graph.start_zone.name
             for drone_id in all_drones_ids}
 
+        for turn_num in range(1, self.total_turns + 1):
+            turns[turn_num] = dict(turns[turn_num - 1])
+
         for turn_idx, line in enumerate(self.history):
-            turns[turn_idx + 1] = dict(turns[turn_idx])
+            turn_num = turn_idx + 1
             for movement in line.split(" "):
+                if not movement:
+                    continue
                 parts = movement.split("-")
                 drone_id = parts[0]
                 zone_name = parts[-1]
-                turns[turn_idx + 1][drone_id] = zone_name
+                turns[turn_num][drone_id] = zone_name
+                for future_turn in range(turn_num + 1, self.total_turns + 1):
+                    if turns[future_turn].get(drone_id) == turns[turn_num - 1].get(drone_id):
+                        turns[future_turn][drone_id] = zone_name
+                    else:
+                        break
+
         return turns
 
     def _draw_legend(self) -> int:
@@ -300,7 +314,7 @@ class Visualizer:
                     text = font.render(drone_id, True, (0, 0, 0))
                     self.screen_surf.blit(text, (
                         pixel_position[0] - text.get_width()
-                        // 2, pixel_position[1] +
+                        // 2, + pixel_position[1] +
                         self.drone_img.get_height() // 2))
 
             font_mode = pygame.font.SysFont("Arial", 16)

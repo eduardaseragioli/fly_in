@@ -12,45 +12,65 @@ class ReservationTable:
         """Initialize empty reservation tables for zones and edges."""
 
         self.zone_reservations: dict[tuple[str, int], int] = {}
-        self.edge_reservations: dict[tuple[tuple[str, str], int], int] = {}
+        self.connection_reservations: dict[tuple[tuple[str, str], int], int] = {
+        }
 
     def is_zone_available(self,
                           zone_name: str,
                           turn: int,
                           max_capacity: int) -> bool:
         """Check whether a zone has free capacity at a given turn."""
-
         return self.zone_reservations.get((zone_name, turn), 0) < max_capacity
 
-    def is_edge_available(self,
-                          name_a: str,
-                          name_b: str,
-                          turn: int,
-                          max_capacity: int) -> bool:
+    def is_connection_available(self,
+                                name_a: str,
+                                name_b: str,
+                                turn: int,
+                                max_capacity: int) -> bool:
         """Check whether a connection has free capacity at a given turn."""
 
         if name_a <= name_b:
             key: tuple[str, str] = (name_a, name_b)
         else:
             key = (name_b, name_a)
-        return self.edge_reservations.get((key, turn), 0) < max_capacity
+        return self.connection_reservations.get((key, turn), 0) < max_capacity
 
     def reserve_zone(self, zone_name: str, turn: int) -> None:
         """Reserve one slot in a zone for a specific turn."""
-
         self.zone_reservations[(zone_name, turn)] = \
             self.zone_reservations.get((zone_name, turn), 0) + 1
 
     def reserve_edge(self, name_a: str, name_b: str, turn: int) -> None:
         """Reserve one slot on an edge for a specific turn."""
 
-        if name_a <= name_b:
-            key: tuple[str, str] = (name_a, name_b)
-        else:
-            key = (name_b, name_a)
+        edge_key: tuple[str, str] = (name_a, name_b) if name_a <= name_b \
+            else (name_b, name_a)
+        key = (edge_key, turn)
+        self.connection_reservations[key] = self.connection_reservations.get(
+            key, 0) + 1
 
-        self.edge_reservations[(key, turn)] = \
-            self.edge_reservations.get((key, turn), 0) + 1
+    def reserve_path(self, path: list[tuple[Zone, int]],
+                     graph: Graph,
+                     start_zone: Zone,
+                     end_zone: Zone) -> None:
+        """Reserve all zones and edges along a planned path."""
+
+        last_turn = -1
+        last_zone = None
+        for idx, (zone, turn) in enumerate(path):
+            if last_turn != -1 and last_turn + 1 != turn:
+                for i in range(last_turn + 1, turn):
+                    self.reserve_zone(last_zone.name, i)
+            if zone != end_zone and zone != start_zone:
+                self.reserve_zone(zone.name, turn)
+            if idx < len(path) - 1:
+                next_zone, _ = path[idx + 1]
+                if next_zone != zone:
+                    conn = graph.get_connection(zone, next_zone)
+                    if conn:
+                        self.reserve_edge(zone.name, next_zone.name, turn)
+            last_turn = turn
+            last_zone = zone
 
 
 class Pathfinder:
@@ -59,48 +79,6 @@ class Pathfinder:
     def __init__(self, graph: Graph) -> None:
         """Initialize the pathfinder with a graph."""
         self.graph: Graph = graph
-
-    def find_path(self,
-                  start_hub: Zone,
-                  end_hub: Zone) -> list[Zone]:
-        """Find the shortest path ignoring other drones using Dijkstra."""
-
-        dist: dict[Zone, int] = {start_hub: 0}
-        prev: dict[Zone, Zone] = {}
-        visited: set[Zone] = set()
-        heap: list[tuple[int, int, int, Zone]] = [(0, 0, 0, start_hub)]
-        counter: int = 0
-
-        while heap:
-            d, _, _, zone = heapq.heappop(heap)
-            if zone in visited:
-                continue
-            visited.add(zone)
-
-            if zone == end_hub:
-                path = [end_hub]
-                cur = end_hub
-                while cur in prev:
-                    cur = prev[cur]
-                    path.append(cur)
-                path.reverse()
-                return path
-
-            for neighbor in self.graph.get_neighbors(zone):
-                if neighbor.type_zone == Type_zone.blocked:
-                    continue
-                cost = 2 if neighbor.type_zone == Type_zone.restricted else 1
-                nd = d + cost
-                if neighbor not in dist or nd < dist[neighbor]:
-                    dist[neighbor] = nd
-                    prev[neighbor] = zone
-                    counter += 1
-                    priority_bonus = -1 if \
-                        neighbor.type_zone == Type_zone.priority else 0
-
-                    heapq.heappush(
-                        heap, (nd, priority_bonus, counter, neighbor))
-        return []
 
     def find_path_with_reservations(
         self,
@@ -117,7 +95,6 @@ class Pathfinder:
         dist: dict[tuple[Zone, int], float] = {start_node: 0}
         prev: dict[tuple[Zone, int], Optional[tuple[Zone, int]]] = {
             start_node: None}
-        visited: set[tuple[Zone, int]] = set()
         heap: list[tuple[float, int, int, Zone, int]] = [
             (0, 0, 0, start_hub, start_turn)]
         counter: int = 0
@@ -125,10 +102,6 @@ class Pathfinder:
         while heap:
             d, _, _, zone, turn = heapq.heappop(heap)
             node: tuple[Zone, int] = (zone, turn)
-
-            if node in visited:
-                continue
-            visited.add(node)
 
             if zone == end_hub:
                 path: list[tuple[Zone, int]] = []
@@ -146,29 +119,22 @@ class Pathfinder:
                 if neighbor.type_zone == Type_zone.blocked:
                     continue
 
-                weight = 2 if neighbor.type_zone == Type_zone.restricted else 1
+                weight = 2 if zone.type_zone == Type_zone.restricted else 1
                 next_turn = turn + weight
 
                 if next_turn > max_turn:
                     continue
 
                 conn = self.graph.get_connection(zone, neighbor)
-                if conn and not table.is_edge_available(
+                if conn and not table.is_connection_available(
                         zone.name, neighbor.name, turn,
                         conn.max_link_capacity):
+                    print(f"{zone.name} {turn}")
                     continue
 
-                if neighbor != end_hub and neighbor != start_hub:
-                    if neighbor.type_zone == Type_zone.restricted:
-                        ok = all(
-                            table.is_zone_available(
-                                neighbor.name, t, neighbor.max_drones)
-                            for t in range(turn + 1, next_turn + 1)
-                        )
-                    else:
-                        ok = table.is_zone_available(
-                            neighbor.name, next_turn, neighbor.max_drones)
-                    if not ok:
+                if neighbor != end_hub:
+                    if not table.is_zone_available(
+                            neighbor.name, next_turn, neighbor.max_drones):
                         continue
 
                 next_node: tuple[Zone, int] = (neighbor, next_turn)

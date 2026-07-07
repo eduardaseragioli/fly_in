@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from drone import Drone
 
 
-class Type_zone(str, Enum):
+class Type_zone(Enum):
     """Enumeration of possible zone types in the airspace graph."""
 
     normal = "normal"
