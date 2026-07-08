@@ -32,14 +32,13 @@ def main() -> None:
     simulator.run_simulator()
     simulator.print_output()
 
-    #try:
+    # try:
     from visualizer import Visualizer
-    print(f"history lines: {len(simulator.history)}, total_turns: {simulator.get_turns()}")
-    for i, line in enumerate(simulator.history):
-        print(f"  {i+1}: '{line}'")
-    visualizer: Visualizer = Visualizer(graph, simulator.history, simulator.get_turns())
+
+    visualizer: Visualizer = Visualizer(
+        graph, simulator.history, simulator.get_turns())
     visualizer.rotate_pygame()
-    #except Exception:
+    # except Exception:
     #    pass
 
 

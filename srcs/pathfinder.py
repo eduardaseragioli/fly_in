@@ -12,15 +12,17 @@ class ReservationTable:
         """Initialize empty reservation tables for zones and edges."""
 
         self.zone_reservations: dict[tuple[str, int], int] = {}
-        self.connection_reservations: dict[tuple[tuple[str, str], int], int] = {
-        }
+        self.connection_reservations: dict[
+            tuple[tuple[str, str], int], int
+        ] = {}
 
     def is_zone_available(self,
                           zone_name: str,
                           turn: int,
                           max_capacity: int) -> bool:
         """Check whether a zone has free capacity at a given turn."""
-        return self.zone_reservations.get((zone_name, turn), 0) < max_capacity
+        print(f"zone: {zone_name} turn: {turn} capacity: {self.zone_reservations.get((zone_name, turn), 0)} max: {max_capacity}")
+        return self.zone_reservations.get((zone_name, turn), 0) <= max_capacity
 
     def is_connection_available(self,
                                 name_a: str,
@@ -55,12 +57,13 @@ class ReservationTable:
                      end_zone: Zone) -> None:
         """Reserve all zones and edges along a planned path."""
 
-        last_turn = -1
-        last_zone = None
+        last_turn: int = -1
+        last_zone: Zone | None = None
         for idx, (zone, turn) in enumerate(path):
             if last_turn != -1 and last_turn + 1 != turn:
                 for i in range(last_turn + 1, turn):
-                    self.reserve_zone(last_zone.name, i)
+                    if last_zone is not None:
+                        self.reserve_zone(last_zone.name, i)
             if zone != end_zone and zone != start_zone:
                 self.reserve_zone(zone.name, turn)
             if idx < len(path) - 1:
@@ -129,7 +132,6 @@ class Pathfinder:
                 if conn and not table.is_connection_available(
                         zone.name, neighbor.name, turn,
                         conn.max_link_capacity):
-                    print(f"{zone.name} {turn}")
                     continue
 
                 if neighbor != end_hub:

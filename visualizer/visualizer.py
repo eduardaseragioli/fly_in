@@ -8,7 +8,12 @@ import os
 class Visualizer:
     """Renders the airspace graph and animates drone movements using pygame."""
 
-    def __init__(self, graph: Graph, history: list[str], total_turns: int) -> None:
+    def __init__(
+        self,
+        graph: Graph,
+        history: list[str],
+        total_turns: int,
+    ) -> None:
         """Initialize the visualizer with the graph and simulation history."""
 
         self.graph: Graph = graph
@@ -204,7 +209,8 @@ class Visualizer:
                 zone_name = parts[-1]
                 turns[turn_num][drone_id] = zone_name
                 for future_turn in range(turn_num + 1, self.total_turns + 1):
-                    if turns[future_turn].get(drone_id) == turns[turn_num - 1].get(drone_id):
+                    prev_pos = turns[turn_num - 1].get(drone_id)
+                    if turns[future_turn].get(drone_id) == prev_pos:
                         turns[future_turn][drone_id] = zone_name
                     else:
                         break

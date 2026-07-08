@@ -9,11 +9,11 @@ MAIN = srcs/main.py
 #FILE = maps/easy/03_basic_capacity.txt
 
 #FILE = maps/medium/01_dead_end_trap.txt
-FILE = maps/medium/02_circular_loop.txt
+#FILE = maps/medium/02_circular_loop.txt
 #FILE = maps/medium/03_priority_puzzle.txt
 
 #FILE = maps/hard/01_maze_nightmare.txt
-#FILE = maps/hard/02_capacity_hell.txt
+FILE = maps/hard/02_capacity_hell.txt
 #FILE = maps/hard/03_ultimate_challenge.txt
 
 #FILE = maps/challenger/01_the_impossible_dream.txt

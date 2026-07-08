@@ -69,7 +69,6 @@ class Simulator:
 
             table.reserve_path(
                 path, self.graph, self.graph.start_zone, self.graph.end_zone)
-            print(f"{drone_id}: {[(z.name, t) for z, t in path]}")
 
             drone.planned_path = [(z, t)
                                   for z, t in path
@@ -95,13 +94,16 @@ class Simulator:
         for drone in self.drones:
             for n in range(0, drone.planned_path[0][1]):
                 drone.planned_path.insert(n, (self.graph.start_zone, n))
-            last_turn = None
+            last_turn: tuple[Zone, int] | None = None
             i = 0
             for n, turn in enumerate(drone.planned_path):
                 zone = turn[0]
                 turn_nbr = turn[1]
                 if turn_nbr != i:
-                    drone.planned_path.insert(n, (last_turn[0], i))
+                    if last_turn is not None:
+                        drone.planned_path.insert(n, (last_turn[0], i))
+                    else:
+                        drone.planned_path.insert(n, (last_turn[0], i))
                 i += 1
                 last_turn = turn
 
@@ -113,23 +115,27 @@ class Simulator:
             for drone in self.drones:
                 if drone.status == Status.arrived:
                     continue
-
                 path = drone.planned_path
                 if not path:
                     drone.status = Status.arrived
                     delivered.add(drone.id_drone)
                     continue
 
-                while (drone.path_index < len(path) and
-                       path[drone.path_index][1] < self.current_turn):
-                    drone.path_index += 1
+#                while (drone.path_index < len(path) and
+#                       path[drone.path_index][1] < self.current_turn):
+#                    drone.path_index += 1
+                drone.path_index = self.current_turn
                 if drone.path_index >= len(path):
                     drone.status = Status.arrived
                     delivered.add(drone.id_drone)
                     continue
 
                 zone, target_turn = path[drone.path_index]
-                if target_turn == self.current_turn and zone != drone.current_zone:
+                print(f"drone {drone.id_drone} {self.current_turn} {zone.name}")
+                if (
+                    target_turn == self.current_turn
+                    and zone != drone.current_zone
+                ):
                     moved = self._move_drone_to_zone(drone, zone)
 
                     if moved:
@@ -138,8 +144,7 @@ class Simulator:
 
                         if zone == self.graph.end_zone:
                             delivered.add(drone.id_drone)
-
-            #if movements:
+            print(f"movements {movements}")
             self.history.append(" ".join(movements))
 
     def print_output(self) -> None:
