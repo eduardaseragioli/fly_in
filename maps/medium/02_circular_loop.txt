@@ -12,7 +12,7 @@ end_hub: goal 4 0 [color=red]
 connection: start-loop_a [max_link_capacity=2]
 connection: loop_a-loop_b [max_link_capacity=2]
 connection: loop_b-loop_c [max_link_capacity=2]
-connection: loop_c-loop_c [max_link_capacity=2]
+connection: loop_c-loop_d [max_link_capacity=2]
 connection: loop_d-loop_a [max_link_capacity=2]
 connection: loop_b-exit_point
 connection: exit_point-goal
