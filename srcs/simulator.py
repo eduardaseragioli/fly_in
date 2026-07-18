@@ -1,8 +1,9 @@
+############ simulator.py (ficheiro completo) ############
 from __future__ import annotations
 from graph import Graph
 from pathfinder import Pathfinder, ReservationTable
 from drone import Drone, Status
-from zones import Zone
+from zones import Zone, Type_zone
 
 
 class Simulator:
@@ -64,6 +65,11 @@ class Simulator:
             )
 
             if not path:
+                print(
+                    f"Warning: no valid path found for {drone_id} "
+                    f"(end zone unreachable, or blocked by capacity "
+                    f"within the turn limit)."
+                )
                 self.drones.append(drone)
                 continue
 
@@ -79,34 +85,56 @@ class Simulator:
             self._place_drone_at_start(drone)
             self.drones.append(drone)
 
+    def _advance_drone(self, drone: Drone, movements: list[str]) -> None:
+        """Advance a single drone by one simulation step.
+
+        A path entry whose zone matches the drone's current zone is a
+        genuine mandatory-settle turn inside a restricted zone (the raw
+        path now always contains an explicit entry per turn, no gaps).
+        It is displayed, but no real move is attempted since the drone
+        is already there. Any other entry triggers a real, capacity
+        checked move; if that move fails, it is retried the next turn
+        instead of being skipped.
+        """
+
+        path = drone.planned_path
+
+        while (drone.path_index < len(path) and
+               path[drone.path_index][1] <= self.current_turn and
+               path[drone.path_index][0] == drone.current_zone):
+            zone, _ = path[drone.path_index]
+            if zone.type_zone == Type_zone.restricted:
+                movements.append(f"{drone.id_drone}-{zone.name}")
+            drone.path_index += 1
+
+        if drone.path_index >= len(path):
+            drone.status = Status.arrived
+            return
+
+        zone, target_turn = path[drone.path_index]
+        if target_turn <= self.current_turn and zone != drone.current_zone:
+            moved = self._move_drone_to_zone(drone, zone)
+            if moved:
+                movements.append(f"{drone.id_drone}-{zone.name}")
+                drone.path_index += 1
+                if zone == self.graph.end_zone:
+                    drone.status = Status.arrived
+
     def run_simulator(self) -> None:
         """Execute the simulation by moving all
                 drones along their planned paths."""
 
         delivered: set[str] = set()
         self.current_turn = 0
-        max_turns = -1
+        planned_max_turns = -1
 
         for drone in self.drones:
-            for path in drone.planned_path:
-                if path[1] > max_turns:
-                    max_turns = path[1]
-        for drone in self.drones:
-            for n in range(0, drone.planned_path[0][1]):
-                drone.planned_path.insert(n, (self.graph.start_zone, n))
-            last_turn: tuple[Zone, int] | None = None
-            i = 0
-            for n, turn in enumerate(drone.planned_path):
-                zone = turn[0]
-                turn_nbr = turn[1]
-                if turn_nbr != i:
-                    if last_turn is not None:
-                        drone.planned_path.insert(n, (last_turn[0], i))
-                    else:
-                        drone.planned_path.insert(n, (last_turn[0], i))
-                i += 1
-                last_turn = turn
+            for entry in drone.planned_path:
+                if entry[1] > planned_max_turns:
+                    planned_max_turns = entry[1]
 
+        safety_margin = len(self.drones) + 1
+        max_turns = planned_max_turns + safety_margin
         while len(delivered) < len(self.drones) \
                 and self.current_turn < max_turns:
             self.current_turn += 1
@@ -114,37 +142,19 @@ class Simulator:
 
             for drone in self.drones:
                 if drone.status == Status.arrived:
+                    if drone.id_drone not in delivered:
+                        delivered.add(drone.id_drone)
                     continue
-                path = drone.planned_path
-                if not path:
+                if not drone.planned_path:
                     drone.status = Status.arrived
                     delivered.add(drone.id_drone)
                     continue
 
-#                while (drone.path_index < len(path) and
-#                       path[drone.path_index][1] < self.current_turn):
-#                    drone.path_index += 1
-                drone.path_index = self.current_turn
-                if drone.path_index >= len(path):
-                    drone.status = Status.arrived
+                self._advance_drone(drone, movements)
+
+                if drone.status == Status.arrived:
                     delivered.add(drone.id_drone)
-                    continue
 
-                zone, target_turn = path[drone.path_index]
-                print(f"drone {drone.id_drone} {self.current_turn} {zone.name}")
-                if (
-                    target_turn == self.current_turn
-                    and zone != drone.current_zone
-                ):
-                    moved = self._move_drone_to_zone(drone, zone)
-
-                    if moved:
-                        movements.append(f"{drone.id_drone}-{zone.name}")
-                        drone.path_index += 1
-
-                        if zone == self.graph.end_zone:
-                            delivered.add(drone.id_drone)
-            print(f"movements {movements}")
             self.history.append(" ".join(movements))
 
     def print_output(self) -> None:

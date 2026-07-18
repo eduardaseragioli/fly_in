@@ -24,7 +24,11 @@ def main() -> None:
     file_path: Path = Path(sys.argv[1])
 
     parser: Parser = Parser(file_path)
-    graph = parser.parse()
+    try:
+        graph = parser.parse()
+    except ValueError as e:
+        print(f"Error parsing map file: {e}")
+        sys.exit(1)
     nb_drones: int = parser.nb_drones
     pathfinder: Pathfinder = Pathfinder(graph)
     simulator: Simulator = Simulator(graph, nb_drones, pathfinder)

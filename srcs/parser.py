@@ -189,7 +189,6 @@ class Parser:
                             line)
                     except ValueError as e:
                         raise ValueError(f"Line {line_number}: {e}") from None
-                    print(f"zone {name} {max_drones}")
                     hub_zone = Zone(name, coordinates,
                                     type_zone, color, max_drones)
                     zones.append(hub_zone)
